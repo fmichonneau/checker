@@ -1,0 +1,708 @@
+<boxed-text>
+  <boxed-text>
+    <boxed-text>
+      <boxed-text id="TOC">
+      </boxed-text>
+    </boxed-text>
+    <boxed-text>
+      <boxed-text>
+        <boxed-text>
+          <boxed-text>
+            <p> </p>
+            <p><ext-link ext-link-type="uri" xlink:href="index.html"></ext-link></p>
+          </boxed-text>
+          <boxed-text id="navbar">
+            <list list-type="bullet">
+              <list-item>
+                <p><ext-link ext-link-type="uri" xlink:href="index.html">Home</ext-link></p>
+              </list-item>
+              <list-item>
+                <p><ext-link ext-link-type="uri" xlink:href="00-before-we-start.html">Before
+                we start</ext-link></p>
+              </list-item>
+              <list-item>
+                <p><ext-link ext-link-type="uri" xlink:href="01-intro-to-r.html">Intro
+                to R</ext-link></p>
+              </list-item>
+              <list-item>
+                <p><ext-link ext-link-type="uri" xlink:href="02-starting-with-data.html">Starting
+                with data</ext-link></p>
+              </list-item>
+              <list-item>
+                <p><ext-link ext-link-type="uri" xlink:href="03-dplyr.html">Manipulating
+                data frames</ext-link></p>
+              </list-item>
+              <list-item>
+                <p><ext-link ext-link-type="uri" xlink:href="04-visualization-ggplot2.html">Visualizing
+                data</ext-link></p>
+              </list-item>
+              <list-item>
+                <p><ext-link ext-link-type="uri" xlink:href="05-r-and-databases.html">R
+                and SQL</ext-link></p>
+              </list-item>
+              <list-item>
+                <p><ext-link ext-link-type="uri" xlink:href="code-handout.R">Code
+                Handout</ext-link></p>
+              </list-item>
+            </list>
+            <list list-type="bullet">
+              <list-item>
+                <p>
+                <milestone-start id="search-icon" /><italic></italic><milestone-end />
+                </p>
+              </list-item>
+              <list-item>
+                <p><ext-link ext-link-type="uri" xlink:href="https://github.com/datacarpentry/R-ecology-lesson"></ext-link></p>
+              </list-item>
+            </list>
+          </boxed-text>
+        </boxed-text>
+      </boxed-text>
+      <boxed-text id="header">
+        <title>Introduction to R</title>
+        <title><italic>Data Carpentry contributors</italic></title>
+      </boxed-text>
+      <disp-quote>
+        <title>Learning Objectives</title>
+        <list list-type="bullet">
+          <list-item>
+            <p>Define the following terms as they relate to R: object,
+            assign, call, function, arguments, options.</p>
+          </list-item>
+          <list-item>
+            <p>Assign values to objects in R.</p>
+          </list-item>
+          <list-item>
+            <p>Learn how to <italic>name</italic> objects</p>
+          </list-item>
+          <list-item>
+            <p>Use comments to inform script.</p>
+          </list-item>
+          <list-item>
+            <p>Solve simple arithmetic operations in R.</p>
+          </list-item>
+          <list-item>
+            <p>Call functions and use arguments to change their default
+            options.</p>
+          </list-item>
+          <list-item>
+            <p>Inspect the content of vectors and manipulate their
+            content.</p>
+          </list-item>
+          <list-item>
+            <p>Subset and extract values from vectors.</p>
+          </list-item>
+          <list-item>
+            <p>Analyze vectors with missing data.</p>
+          </list-item>
+        </list>
+      </disp-quote>
+      <boxed-text id="creating-objects-in-r">
+        <title>Creating objects in R</title>
+        <p>You can get output from R simply by typing math in the
+        console:</p>
+        <boxed-text>
+          <code language="r script">3 + 5
+12 / 7</code>
+        </boxed-text>
+        <p>However, to do useful and interesting things, we need to
+        assign <italic>values</italic> to <italic>objects</italic>. To
+        create an object, we need to give it a name followed by the
+        assignment operator <monospace>&lt;-</monospace>, and the value
+        we want to give it:</p>
+        <boxed-text>
+          <code language="r script">weight_kg &lt;- 55</code>
+        </boxed-text>
+        <p><monospace>&lt;-</monospace> is the assignment operator. It
+        assigns values on the right to objects on the left. So, after
+        executing <monospace>x &lt;- 3</monospace>, the value of
+        <monospace>x</monospace> is <monospace>3</monospace>. The arrow
+        can be read as 3 <bold role="strong">goes into</bold>
+        <monospace>x</monospace>. For historical reasons, you can also
+        use <monospace>=</monospace> for assignments, but not in every
+        context. Because of the
+        <ext-link ext-link-type="uri" xlink:href="http://blog.revolutionanalytics.com/2008/12/use-equals-or-arrow-for-assignment.html">slight</ext-link>
+        <ext-link ext-link-type="uri" xlink:href="http://r.789695.n4.nabble.com/Is-there-any-difference-between-and-tp878594p878598.html">differences</ext-link>
+        in syntax, it is good practice to always use
+        <monospace>&lt;-</monospace> for assignments.</p>
+        <p>In RStudio, typing Alt + - (push Alt at the same time as the
+        - key) will write <monospace>&lt;-</monospace> in a single
+        keystroke in a PC, while typing Option + - (push Option at the
+        same time as the - key) does the same in a Mac.</p>
+        <p>Objects can be given any name such as
+        <monospace>x</monospace>,
+        <monospace>current_temperature</monospace>, or
+        <monospace>subject_id</monospace>. You want your object names to
+        be explicit and not too long. They cannot start with a number
+        (<monospace>2x</monospace> is not valid, but
+        <monospace>x2</monospace> is). R is case sensitive (e.g.,
+        <monospace>weight_kg</monospace> is different from
+        <monospace>Weight_kg</monospace>). There are some names that
+        cannot be used because they are the names of fundamental
+        functions in R (e.g., <monospace>if</monospace>,
+        <monospace>else</monospace>, <monospace>for</monospace>, see
+        <ext-link ext-link-type="uri" xlink:href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/Reserved.html">here</ext-link>
+        for a complete list). In general, even if it’s allowed, it’s
+        best to not use other function names (e.g.,
+        <monospace>c</monospace>, <monospace>T</monospace>,
+        <monospace>mean</monospace>, <monospace>data</monospace>,
+        <monospace>df</monospace>, <monospace>weights</monospace>). If
+        in doubt, check the help to see if the name is already in use.
+        It’s also best to avoid dots (<monospace>.</monospace>) within
+        an object name as in <monospace>my.dataset</monospace>. There
+        are many functions in R with dots in their names for historical
+        reasons, but because dots have a special meaning in R (for
+        methods) and other programming languages, it’s best to avoid
+        them. It is also recommended to use nouns for object names, and
+        verbs for function names. It’s important to be consistent in the
+        styling of your code (where you put spaces, how you name
+        objects, etc.). Using a consistent coding style makes your code
+        clearer to read for your future self and your collaborators. In
+        R, three popular style guides are
+        <ext-link ext-link-type="uri" xlink:href="https://google.github.io/styleguide/Rguide.xml">Google’s</ext-link>,
+        <ext-link ext-link-type="uri" xlink:href="http://jef.works/R-style-guide/">Jean
+        Fan’s</ext-link> and the
+        <ext-link ext-link-type="uri" xlink:href="http://style.tidyverse.org/">tidyverse’s</ext-link>.
+        The tidyverse’s is very comprehensive and may seem overwhelming
+        at first. You can install the
+        <ext-link ext-link-type="uri" xlink:href="https://github.com/jimhester/lintr"><bold role="strong"><monospace>lintr</monospace></bold></ext-link>
+        package to automatically check for issues in the styling of your
+        code.</p>
+        <disp-quote>
+          <title>Objects vs. variables</title>
+          <p>What are known as <monospace>objects</monospace> in
+          <monospace>R</monospace> are known as
+          <monospace>variables</monospace> in many other programming
+          languages. Depending on the context,
+          <monospace>object</monospace> and
+          <monospace>variable</monospace> can have drastically different
+          meanings. However, in this lesson, the two words are used
+          synonymously. For more information see:
+          <ext-link ext-link-type="uri" xlink:href="https://cran.r-project.org/doc/manuals/r-release/R-lang.html#Objects">https://cran.r-project.org/doc/manuals/r-release/R-lang.html#Objects</ext-link></p>
+        </disp-quote>
+        <p>When assigning a value to an object, R does not print
+        anything. You can force R to print the value by using
+        parentheses or by typing the object name:</p>
+        <boxed-text>
+          <code language="r script">weight_kg &lt;- 55    # doesn't print anything
+(weight_kg &lt;- 55)  # but putting parenthesis around the call prints the value of `weight_kg`
+weight_kg          # and so does typing the name of the object</code>
+        </boxed-text>
+        <p>Now that R has <monospace>weight_kg</monospace> in memory, we
+        can do arithmetic with it. For instance, we may want to convert
+        this weight into pounds (weight in pounds is 2.2 times the
+        weight in kg):</p>
+        <boxed-text>
+          <code language="r script">2.2 * weight_kg</code>
+        </boxed-text>
+        <p>We can also change an object’s value by assigning it a new
+        one:</p>
+        <boxed-text>
+          <code language="r script">weight_kg &lt;- 57.5
+2.2 * weight_kg</code>
+        </boxed-text>
+        <p>This means that assigning a value to one object does not
+        change the values of other objects For example, let’s store the
+        animal’s weight in pounds in a new object,
+        <monospace>weight_lb</monospace>:</p>
+        <boxed-text>
+          <code language="r script">weight_lb &lt;- 2.2 * weight_kg</code>
+        </boxed-text>
+        <p>and then change <monospace>weight_kg</monospace> to 100.</p>
+        <boxed-text>
+          <code language="r script">weight_kg &lt;- 100</code>
+        </boxed-text>
+        <p>What do you think is the current content of the object
+        <monospace>weight_lb</monospace>? 126.5 or 220?</p>
+        <boxed-text id="comments">
+          <title>Comments</title>
+          <p>The comment character in R is <monospace>#</monospace>,
+          anything to the right of a <monospace>#</monospace> in a
+          script will be ignored by R. It is useful to leave notes, and
+          explanations in your scripts. RStudio makes it easy to comment
+          or uncomment a paragraph: after selecting the lines you want
+          to comment, press at the same time on your keyboard Ctrl +
+          Shift + C. If you only want to comment out one line, you can
+          put the cursor at any location of that line (i.e. no need to
+          select the whole line), then press Ctrl + Shift + C.</p>
+          <disp-quote>
+            <title>Challenge</title>
+            <p>What are the values after each statement in the
+            following?</p>
+            <boxed-text>
+              <code language="r script">mass &lt;- 47.5            # mass?
+age  &lt;- 122             # age?
+mass &lt;- mass * 2.0      # mass?
+age  &lt;- age - 20        # age?
+mass_index &lt;- mass/age  # mass_index?</code>
+            </boxed-text>
+          </disp-quote>
+        </boxed-text>
+        <boxed-text id="functions-and-their-arguments">
+          <title>Functions and their arguments</title>
+          <p>Functions are “canned scripts” that automate more
+          complicated sets of commands including operations assignments,
+          etc. Many functions are predefined, or can be made available
+          by importing R <italic>packages</italic> (more on that later).
+          A function usually gets one or more inputs called
+          <italic>arguments</italic>. Functions often (but not always)
+          return a <italic>value</italic>. A typical example would be
+          the function <monospace>sqrt()</monospace>. The input (the
+          argument) must be a number, and the return value (in fact, the
+          output) is the square root of that number. Executing a
+          function (‘running it’) is called <italic>calling</italic> the
+          function. An example of a function call is:</p>
+          <boxed-text>
+            <code language="r script">b &lt;- sqrt(a)</code>
+          </boxed-text>
+          <p>Here, the value of <monospace>a</monospace> is given to the
+          <monospace>sqrt()</monospace> function, the
+          <monospace>sqrt()</monospace> function calculates the square
+          root, and returns the value which is then assigned to the
+          object <monospace>b</monospace>. This function is very simple,
+          because it takes just one argument.</p>
+          <p>The return ‘value’ of a function need not be numerical
+          (like that of <monospace>sqrt()</monospace>), and it also does
+          not need to be a single item: it can be a set of things, or
+          even a dataset. We’ll see that when we read data files into
+          R.</p>
+          <p>Arguments can be anything, not only numbers or filenames,
+          but also other objects. Exactly what each argument means
+          differs per function, and must be looked up in the
+          documentation (see below). Some functions take arguments which
+          may either be specified by the user, or, if left out, take on
+          a <italic>default</italic> value: these are called
+          <italic>options</italic>. Options are typically used to alter
+          the way the function operates, such as whether it ignores ‘bad
+          values’, or what symbol to use in a plot. However, if you want
+          something specific, you can specify a value of your choice
+          which will be used instead of the default.</p>
+          <p>Let’s try a function that can take multiple arguments:
+          <monospace>round()</monospace>.</p>
+          <boxed-text>
+            <code language="r script">round(3.14159)</code>
+          </boxed-text>
+          <preformat>#&gt; [1] 3</preformat>
+          <p>Here, we’ve called <monospace>round()</monospace> with just
+          one argument, <monospace>3.14159</monospace>, and it has
+          returned the value <monospace>3</monospace>. That’s because
+          the default is to round to the nearest whole number. If we
+          want more digits we can see how to do that by getting
+          information about the <monospace>round</monospace> function.
+          We can use <monospace>args(round)</monospace> or look at the
+          help for this function using
+          <monospace>?round</monospace>.</p>
+          <boxed-text>
+            <code language="r script">args(round)</code>
+          </boxed-text>
+          <preformat>#&gt; function (x, digits = 0) 
+#&gt; NULL</preformat>
+          <boxed-text>
+            <code language="r script">?round</code>
+          </boxed-text>
+          <p>We see that if we want a different number of digits, we can
+          type <monospace>digits=2</monospace> or however many we
+          want.</p>
+          <boxed-text>
+            <code language="r script">round(3.14159, digits = 2)</code>
+          </boxed-text>
+          <preformat>#&gt; [1] 3.14</preformat>
+          <p>If you provide the arguments in the exact same order as
+          they are defined you don’t have to name them:</p>
+          <boxed-text>
+            <code language="r script">round(3.14159, 2)</code>
+          </boxed-text>
+          <preformat>#&gt; [1] 3.14</preformat>
+          <p>And if you do name the arguments, you can switch their
+          order:</p>
+          <boxed-text>
+            <code language="r script">round(digits = 2, x = 3.14159)</code>
+          </boxed-text>
+          <preformat>#&gt; [1] 3.14</preformat>
+          <p>It’s good practice to put the non-optional arguments (like
+          the number you’re rounding) first in your function call, and
+          to specify the names of all optional arguments. If you don’t,
+          someone reading your code might have to look up the definition
+          of a function with unfamiliar arguments to understand what
+          you’re doing.</p>
+        </boxed-text>
+      </boxed-text>
+      <boxed-text id="vectors-and-data-types">
+        <title>Vectors and data types</title>
+        <p>A vector is the most common and basic data type in R, and is
+        pretty much the workhorse of R. A vector is composed by a series
+        of values, which can be either numbers or characters. We can
+        assign a series of values to a vector using the
+        <monospace>c()</monospace> function. For example we can create a
+        vector of animal weights and assign it to a new object
+        <monospace>weight_g</monospace>:</p>
+        <boxed-text>
+          <code language="r script">weight_g &lt;- c(50, 60, 65, 82)
+weight_g</code>
+        </boxed-text>
+        <p>A vector can also contain characters:</p>
+        <boxed-text>
+          <code language="r script">animals &lt;- c(&quot;mouse&quot;, &quot;rat&quot;, &quot;dog&quot;)
+animals</code>
+        </boxed-text>
+        <p>The quotes around “mouse”, “rat”, etc. are essential here.
+        Without the quotes R will assume there are objects called
+        <monospace>mouse</monospace>, <monospace>rat</monospace> and
+        <monospace>dog</monospace>. As these objects don’t exist in R’s
+        memory, there will be an error message.</p>
+        <p>There are many functions that allow you to inspect the
+        content of a vector. <monospace>length()</monospace> tells you
+        how many elements are in a particular vector:</p>
+        <boxed-text>
+          <code language="r script">length(weight_g)
+length(animals)</code>
+        </boxed-text>
+        <p>An important feature of a vector, is that all of the elements
+        are the same type of data. The function
+        <monospace>class()</monospace> indicates the class (the type of
+        element) of an object:</p>
+        <boxed-text>
+          <code language="r script">class(weight_g)
+class(animals)</code>
+        </boxed-text>
+        <p>The function <monospace>str()</monospace> provides an
+        overview of the structure of an object and its elements. It is a
+        useful function when working with large and complex objects:</p>
+        <boxed-text>
+          <code language="r script">str(weight_g)
+str(animals)</code>
+        </boxed-text>
+        <p>You can use the <monospace>c()</monospace> function to add
+        other elements to your vector:</p>
+        <boxed-text>
+          <code language="r script">weight_g &lt;- c(weight_g, 90) # add to the end of the vector
+weight_g &lt;- c(30, weight_g) # add to the beginning of the vector
+weight_g</code>
+        </boxed-text>
+        <p>In the first line, we take the original vector
+        <monospace>weight_g</monospace>, add the value
+        <monospace>90</monospace> to the end of it, and save the result
+        back into <monospace>weight_g</monospace>. Then we add the value
+        <monospace>30</monospace> to the beginning, again saving the
+        result back into <monospace>weight_g</monospace>.</p>
+        <p>We can do this over and over again to grow a vector, or
+        assemble a dataset. As we program, this may be useful to add
+        results that we are collecting or calculating.</p>
+        <p>An <bold role="strong">atomic vector</bold> is the simplest R
+        <bold role="strong">data type</bold> and is a linear vector of a
+        single type. Above, we saw 2 of the 6 main
+        <bold role="strong">atomic vector</bold> types that R uses:
+        <monospace>&quot;character&quot;</monospace> and
+        <monospace>&quot;numeric&quot;</monospace> (or
+        <monospace>&quot;double&quot;</monospace>). These are the basic
+        building blocks that all R objects are built from. The other 4
+        <bold role="strong">atomic vector</bold> types are:</p>
+        <list list-type="bullet">
+          <list-item>
+            <p><monospace>&quot;logical&quot;</monospace> for
+            <monospace>TRUE</monospace> and <monospace>FALSE</monospace>
+            (the boolean data type)</p>
+          </list-item>
+          <list-item>
+            <p><monospace>&quot;integer&quot;</monospace> for integer
+            numbers (e.g., <monospace>2L</monospace>, the
+            <monospace>L</monospace> indicates to R that it’s an
+            integer)</p>
+          </list-item>
+          <list-item>
+            <p><monospace>&quot;complex&quot;</monospace> to represent
+            complex numbers with real and imaginary parts (e.g.,
+            <monospace>1 + 4i</monospace>) and that’s all we’re going to
+            say about them</p>
+          </list-item>
+          <list-item>
+            <p><monospace>&quot;raw&quot;</monospace> for bitstreams
+            that we won’t discuss further</p>
+          </list-item>
+        </list>
+        <p>You can check the type of your vector using the
+        <monospace>typeof()</monospace> function and inputting your
+        vector as the argument.</p>
+        <p>Vectors are one of the many <bold role="strong">data
+        structures</bold> that R uses. Other important ones are lists
+        (<monospace>list</monospace>), matrices
+        (<monospace>matrix</monospace>), data frames
+        (<monospace>data.frame</monospace>), factors
+        (<monospace>factor</monospace>) and arrays
+        (<monospace>array</monospace>).</p>
+        <disp-quote>
+          <title>Challenge</title>
+          <list list-type="bullet">
+            <list-item>
+              <p>We’ve seen that atomic vectors can be of type
+              character, numeric (or double), integer, and logical. But
+              what happens if we try to mix these types in a single
+              vector?</p>
+            </list-item>
+          </list>
+          <boxed-text>
+            <title>Answer</title>
+            <boxed-text>
+              <p>R implicitly converts them to all be the same type</p>
+            </boxed-text>
+          </boxed-text>
+          <list list-type="bullet">
+            <list-item>
+              <p>What will happen in each of these examples? (hint: use
+              <monospace>class()</monospace> to check the data type of
+              your objects):</p>
+              <boxed-text>
+                <code language="r script">num_char &lt;- c(1, 2, 3, &quot;a&quot;)
+num_logical &lt;- c(1, 2, 3, TRUE)
+char_logical &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, TRUE)
+tricky &lt;- c(1, 2, 3, &quot;4&quot;)</code>
+              </boxed-text>
+            </list-item>
+            <list-item>
+              <p>Why do you think it happens?</p>
+            </list-item>
+          </list>
+          <boxed-text>
+            <title>Answer</title>
+            <boxed-text>
+              <p>Vectors can be of only one data type. R tries to
+              convert (coerce) the content of this vector to find a
+              “common denominator” that doesn’t lose any
+              information.</p>
+            </boxed-text>
+          </boxed-text>
+          <list list-type="bullet">
+            <list-item>
+              <p>How many values in
+              <monospace>combined_logical</monospace> are
+              <monospace>&quot;TRUE&quot;</monospace> (as a character)
+              in the following example:</p>
+              <boxed-text>
+                <code language="r script">num_logical &lt;- c(1, 2, 3, TRUE)
+char_logical &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, TRUE)
+combined_logical &lt;- c(num_logical, char_logical)</code>
+              </boxed-text>
+            </list-item>
+            <list-item>
+              <p>You’ve probably noticed that objects of different types
+              get converted into a single, shared type within a vector.
+              In R, we call converting objects from one class into
+              another class <italic>coercion</italic>. These conversions
+              happen according to a hierarchy, whereby some types get
+              preferentially coerced into other types. Can you draw a
+              diagram that represents the hierarchy of how these data
+              types are coerced?</p>
+            </list-item>
+          </list>
+          <boxed-text>
+            <title>Answer</title>
+            <boxed-text>
+              <p>logical → numeric → character ← logical</p>
+            </boxed-text>
+          </boxed-text>
+        </disp-quote>
+      </boxed-text>
+      <boxed-text id="subsetting-vectors">
+        <title>Subsetting vectors</title>
+        <p>If we want to extract one or several values from a vector, we
+        must provide one or several indices in square brackets. For
+        instance:</p>
+        <boxed-text>
+          <code language="r script">animals &lt;- c(&quot;mouse&quot;, &quot;rat&quot;, &quot;dog&quot;, &quot;cat&quot;)
+animals[2]</code>
+        </boxed-text>
+        <preformat>#&gt; [1] &quot;rat&quot;</preformat>
+        <boxed-text>
+          <code language="r script">animals[c(3, 2)]</code>
+        </boxed-text>
+        <preformat>#&gt; [1] &quot;dog&quot; &quot;rat&quot;</preformat>
+        <p>We can also repeat the indices to create an object with more
+        elements than the original one:</p>
+        <boxed-text>
+          <code language="r script">more_animals &lt;- animals[c(1, 2, 3, 2, 1, 4)]
+more_animals</code>
+        </boxed-text>
+        <preformat>#&gt; [1] &quot;mouse&quot; &quot;rat&quot;   &quot;dog&quot;   &quot;rat&quot;   &quot;mouse&quot; &quot;cat&quot;</preformat>
+        <p>R indices start at 1. Programming languages like Fortran,
+        MATLAB, Julia, and R start counting at 1, because that’s what
+        human beings typically do. Languages in the C family (including
+        C++, Java, Perl, and Python) count from 0 because that’s simpler
+        for computers to do.</p>
+        <boxed-text id="conditional-subsetting">
+          <title>Conditional subsetting</title>
+          <p>Another common way of subsetting is by using a logical
+          vector. <monospace>TRUE</monospace> will select the element
+          with the same index, while <monospace>FALSE</monospace> will
+          not:</p>
+          <boxed-text>
+            <code language="r script">weight_g &lt;- c(21, 34, 39, 54, 55)
+weight_g[c(TRUE, FALSE, TRUE, TRUE, FALSE)]</code>
+          </boxed-text>
+          <preformat>#&gt; [1] 21 39 54</preformat>
+          <p>Typically, these logical vectors are not typed by hand, but
+          are the output of other functions or logical tests. For
+          instance, if you wanted to select only the values above
+          50:</p>
+          <boxed-text>
+            <code language="r script">weight_g &gt; 50    # will return logicals with TRUE for the indices that meet the condition</code>
+          </boxed-text>
+          <preformat>#&gt; [1] FALSE FALSE FALSE  TRUE  TRUE</preformat>
+          <boxed-text>
+            <code language="r script">## so we can use this to select only the values above 50
+weight_g[weight_g &gt; 50]</code>
+          </boxed-text>
+          <preformat>#&gt; [1] 54 55</preformat>
+          <p>You can combine multiple tests using
+          <monospace>&amp;</monospace> (both conditions are true, AND)
+          or <monospace>|</monospace> (at least one of the conditions is
+          true, OR):</p>
+          <boxed-text>
+            <code language="r script">weight_g[weight_g &lt; 30 | weight_g &gt; 50]</code>
+          </boxed-text>
+          <preformat>#&gt; [1] 21 54 55</preformat>
+          <boxed-text>
+            <code language="r script">weight_g[weight_g &gt;= 30 &amp; weight_g == 21]</code>
+          </boxed-text>
+          <preformat>#&gt; numeric(0)</preformat>
+          <p>Here, <monospace>&lt;</monospace> stands for “less than”,
+          <monospace>&gt;</monospace> for “greater than”,
+          <monospace>&gt;=</monospace> for “greater than or equal to”,
+          and <monospace>==</monospace> for “equal to”. The double equal
+          sign <monospace>==</monospace> is a test for numerical
+          equality between the left and right hand sides, and should not
+          be confused with the single <monospace>=</monospace> sign,
+          which performs variable assignment (similar to
+          <monospace>&lt;-</monospace>).</p>
+          <p>A common task is to search for certain strings in a vector.
+          One could use the “or” operator <monospace>|</monospace> to
+          test for equality to multiple values, but this can quickly
+          become tedious. The function <monospace>%in%</monospace>
+          allows you to test if any of the elements of a search vector
+          are found:</p>
+          <boxed-text>
+            <code language="r script">animals &lt;- c(&quot;mouse&quot;, &quot;rat&quot;, &quot;dog&quot;, &quot;cat&quot;)
+animals[animals == &quot;cat&quot; | animals == &quot;rat&quot;] # returns both rat and cat</code>
+          </boxed-text>
+          <preformat>#&gt; [1] &quot;rat&quot; &quot;cat&quot;</preformat>
+          <boxed-text>
+            <code language="r script">animals %in% c(&quot;rat&quot;, &quot;cat&quot;, &quot;dog&quot;, &quot;duck&quot;, &quot;goat&quot;)</code>
+          </boxed-text>
+          <preformat>#&gt; [1] FALSE  TRUE  TRUE  TRUE</preformat>
+          <boxed-text>
+            <code language="r script">animals[animals %in% c(&quot;rat&quot;, &quot;cat&quot;, &quot;dog&quot;, &quot;duck&quot;, &quot;goat&quot;)]</code>
+          </boxed-text>
+          <preformat>#&gt; [1] &quot;rat&quot; &quot;dog&quot; &quot;cat&quot;</preformat>
+          <disp-quote>
+            <title>Challenge (optional)</title>
+            <list list-type="bullet">
+              <list-item>
+                <p>Can you figure out why
+                <monospace>&quot;four&quot; &gt; &quot;five&quot;</monospace>
+                returns <monospace>TRUE</monospace>?</p>
+              </list-item>
+            </list>
+            <boxed-text>
+              <title>Answer</title>
+              <boxed-text>
+                <p>When using “&gt;” or “&lt;” on strings, R compares
+                their alphabetical order. Here “four” comes after
+                “five”, and therefore is “greater than” it.</p>
+              </boxed-text>
+            </boxed-text>
+          </disp-quote>
+        </boxed-text>
+      </boxed-text>
+      <boxed-text id="missing-data">
+        <title>Missing data</title>
+        <p>As R was designed to analyze datasets, it includes the
+        concept of missing data (which is uncommon in other programming
+        languages). Missing data are represented in vectors as
+        <monospace>NA</monospace>.</p>
+        <p>When doing operations on numbers, most functions will return
+        <monospace>NA</monospace> if the data you are working with
+        include missing values. This feature makes it harder to overlook
+        the cases where you are dealing with missing data. You can add
+        the argument <monospace>na.rm=TRUE</monospace> to calculate the
+        result while ignoring the missing values.</p>
+        <boxed-text>
+          <code language="r script">heights &lt;- c(2, 4, 4, NA, 6)
+mean(heights)
+max(heights)
+mean(heights, na.rm = TRUE)
+max(heights, na.rm = TRUE)</code>
+        </boxed-text>
+        <p>If your data include missing values, you may want to become
+        familiar with the functions <monospace>is.na()</monospace>,
+        <monospace>na.omit()</monospace>, and
+        <monospace>complete.cases()</monospace>. See below for
+        examples.</p>
+        <boxed-text>
+          <code language="r script">## Extract those elements which are not missing values.
+heights[!is.na(heights)]
+
+## Returns the object with incomplete cases removed. The returned object is an atomic vector of type `&quot;numeric&quot;` (or `&quot;double&quot;`).
+na.omit(heights)
+
+## Extract those elements which are complete cases. The returned object is an atomic vector of type `&quot;numeric&quot;` (or `&quot;double&quot;`).
+heights[complete.cases(heights)]</code>
+        </boxed-text>
+        <p>Recall that you can use the <monospace>typeof()</monospace>
+        function to find the type of your atomic vector.</p>
+        <disp-quote>
+          <title>Challenge</title>
+          <list list-type="order">
+            <list-item>
+              <p>Using this vector of heights in inches, create a new
+              vector with the NAs removed.</p>
+              <boxed-text>
+                <code language="r script">heights &lt;- c(63, 69, 60, 65, NA, 68, 61, 70, 61, 59, 64, 69, 63, 63, NA, 72, 65, 64, 70, 63, 65)</code>
+              </boxed-text>
+            </list-item>
+            <list-item>
+              <p>Use the function <monospace>median()</monospace> to
+              calculate the median of the <monospace>heights</monospace>
+              vector.</p>
+            </list-item>
+            <list-item>
+              <p>Use R to figure out how many people in the set are
+              taller than 67 inches.</p>
+            </list-item>
+          </list>
+          <boxed-text>
+            <title>Answer</title>
+            <boxed-text>
+              <boxed-text>
+                <code language="r script">heights &lt;- c(63, 69, 60, 65, NA, 68, 61, 70, 61, 59, 64, 69, 63, 63, NA, 72, 65, 64, 70, 63, 65)
+
+# 1.
+heights_no_na &lt;- heights[!is.na(heights)] 
+# or
+heights_no_na &lt;- na.omit(heights)
+
+# 2.
+median(heights, na.rm = TRUE)
+
+# 3.
+heights_above_67 &lt;- heights_no_na[heights_no_na &gt; 67]
+length(heights_above_67)</code>
+              </boxed-text>
+            </boxed-text>
+          </boxed-text>
+        </disp-quote>
+        <p>Now that we have learned how to write scripts, and the basics
+        of R’s data structures, we are ready to start working with the
+        Portal dataset we have been using in the other lessons, and
+        learn about data frames.</p>
+        <p>Page built on: 📆 2018-06-26 ‒ 🕢 13:45:53</p>
+      </boxed-text>
+      <p><ext-link ext-link-type="uri" xlink:href="http://datacarpentry.org/">Data
+      Carpentry</ext-link>, 2018.
+      <ext-link ext-link-type="uri" xlink:href="LICENSE.html">License</ext-link>.
+      <ext-link ext-link-type="uri" xlink:href="CONTRIBUTING.html">Contributing</ext-link>.<break />Questions?
+      Feedback? Please
+      <ext-link ext-link-type="uri" xlink:href="https://github.com/datacarpentry/R-ecology-lesson/issues/new">file
+      an issue on GitHub</ext-link>.<break />On Twitter:
+      <ext-link ext-link-type="uri" xlink:href="https://twitter.com/datacarpentry">@datacarpentry</ext-link></p>
+    </boxed-text>
+  </boxed-text>
+</boxed-text>
