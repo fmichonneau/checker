@@ -1,12 +1,14 @@
 Package: checker
-Title: What the Package Does (One Line, Title Case)
+Title: Check URLs in (R)Markdown, HTML, LaTeX files, ...
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "François",
+           family = "Michonneau",
            role = c("aut", "cre"),
-           email = "first.last@example.com")
-Description: What the package does (one paragraph).
-License: What license it uses
+           email = "francois.michonneau@gmail.com")
+Description: Check URLs (internal, external, images, ...) in your documents.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+URL: https://github.com/fmichonneau/checker
+BugReports: https://github.com/fmichonneau/checker/issues
