@@ -48,27 +48,27 @@ check_local_file <- function(full_path) {
 ##' @importFrom progress progress_bar
 check_url_raw <- function(full_path) {
 
-
   results <- list()
-  success <- function(x){
+  p <- progress::progress_bar$new(total = length(full_path))
+
+  success <- function(x) {
+    p$tick()
     results <<- append(results, list(x))
   }
-  failure <- function(str){
+  failure <- function(str) {
+    p$tick()
     res <- paste("Failed request:", str)
     results <<- append(results, list(res))
   }
 
-  p <- progress_multi(length(full_path), labels = NULL, count = TRUE,
-                      progress = TRUE)
-
   for (i in seq_along(full_path)) {
-    h <- curl::new_handle(url = full_path[i], progressfunction = p$callback)
+    h <- curl::new_handle(url = full_path[i])
     curl::handle_setopt(h, nobody = 1L, connecttimeout = 200L,
                         failonerror = FALSE)
     curl::multi_add(h, done = success, fail = failure)
   }
   curl::multi_run(timeout = 10)
-  
+
   results
 }
 
@@ -92,11 +92,18 @@ check_url <- function(full_path) {
 }
 
 
-check_links <- function(dir = ".", recursive = TRUE, pattern = "html?$") {
+check_links <- function(dir = ".", recursive = TRUE,
+                        regexp = "html?$", glob = NULL,
+                        only_broken = TRUE, ...) {
 
-  links <- fs::dir_ls(path = dir, recursive = recursive, regexp = pattern) %>%
-    purrr::map_df(extract_links_html, .id = "file") %>%
-    readr::write_csv("/tmp/res.csv")
+  links <- fs::dir_ls(
+    path = dir,
+    recursive = recursive,
+    regexp = regexp,
+    glob = glob,
+    ...
+  ) %>%
+    purrr::map_df(extract_links_html, .id = "file")
 
   uniq_links <- dplyr::distinct(links, is_local, full_path)
 
@@ -108,75 +115,26 @@ check_links <- function(dir = ".", recursive = TRUE, pattern = "html?$") {
         is_local ~ "check_local_file",
         !is_local ~ "check_url",
         TRUE ~ "stop"
-      ))
-
-  browser()
-  res <- dplyr::mutate(res,
-                       res = purrr::invoke_map(fn, data)
-                       )
-
-  res <- res %>%
+      )) %>%
+    dplyr::mutate(
+      res = purrr::invoke_map(fn, data)
+    ) %>%
     tidyr::unnest()
 
-  dplyr::left_join(links, res, by = "full_path") %>%
+  out <- dplyr::left_join(links, res, by = "full_path") %>%
     dplyr::select(file, link, full_path, valid, message)
+
+  if (only_broken) {
+    out <- out %>%
+      dplyr::filter(!valid)
+  }
+
+
+
+  out
 
 }
 
 
-progress_multi <- function(i, labels, count, progress) {
-  label <- format(labels[[i]], width = max(nchar(labels)), justify = "right")
-  if (count) {
-    is <- format(i, width = nchar(length(labels)))
-    prefix <- sprintf("[%s/%s] %s", is, length(labels), label)
-  } else {
-    prefix <- label
-  }
-  bar <- NULL
-  type <- "down"
-  seen <- 0
 
-  if (progress) {
-    callback <- function(down, up) {
-      if (type == "down") {
-        total <- down[[1L]]
-        now <- down[[2L]]
-      } else {
-        total <- up[[1L]]
-        now <- up[[2L]]
-      }
-
-      if (total == 0 && now == 0) {
-        bar <<- NULL
-        seen <<- 0
-        return(TRUE)
-      }
-
-      if (is.null(bar)) {
-        if (total == 0) {
-          fmt <- paste0(prefix, " [ :bytes in :elapsed ]")
-          total <- 1e8 # arbitrarily big
-        } else {
-          fmt <- paste0(prefix, " [:percent :bar]")
-        }
-        bar <<- progress::progress_bar$new(fmt, total, clear = TRUE,
-                                           show_after = 0)
-      }
-      if (total == 0) {
-        bar$tick(now)
-      } else {
-        bar$tick(now - seen)
-        seen <<- now
-      }
-
-      TRUE
-    }
-  } else {
-    callback <- function(down, up) {
-      TRUE
-    }
-  }
-
-  list(callback = callback,
-       prefix = prefix)
 }
