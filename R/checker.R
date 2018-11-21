@@ -100,7 +100,10 @@ check_url <- function(full_path) {
 
 check_links <- function(dir = ".", recursive = TRUE,
                         regexp = "html?$", glob = NULL,
-                        only_broken = TRUE, ...) {
+                        only_broken = TRUE,
+                        raise = c("ok", "warning", "error"), ...) {
+
+  raise <- match.arg(raise)
 
   links <- fs::dir_ls(
     path = dir,
@@ -135,12 +138,43 @@ check_links <- function(dir = ".", recursive = TRUE,
       dplyr::filter(!valid)
   }
 
+  summary_check_links(out)
 
+  handle_raise(out, raise)
 
   out
 
 }
 
+summary_check_links <- function(out) {
 
+  n_broken <- sum(!out$valid)
+  n_valid <- sum(out$valid)
+
+  if (n_broken > 0) {
+    cat(crayon::red(cli::symbol$cross,  n_broken, "links are broken.\n"))
+  }
+
+  if (n_valid > 0) {
+    cat(crayon::green(cli::symbol$tick, n_valid, "links are valid.\n"))
+  }
+
+  if (n_valid == nrow(out)) {
+    cat(crayon::green(cli::symbol$tick, " No broken links found.\n"))
+  }
+
+}
+
+
+handle_raise <- function(out, raise) {
+
+  msg <- "Broken links found."
+
+  if (sum(!out$valid) > 0) {
+    switch(raise,
+           ok = NULL,
+           warning = warning(msg),
+           error = stop(msg))
+  }
 
 }
