@@ -35,11 +35,19 @@ extract_links_html  <- function(doc) {
 
 
 check_local_file <- function(full_path) {
-  fs::file_exists(full_path)
+  fs::file_exists(full_path) %>%
+    purrr::map_df(function(.x) {
+      list(
+        valid = .x,
+        message = NA_character_
+      )
+    })
 }
 
 
+##' @importFrom progress progress_bar
 check_url_raw <- function(full_path) {
+
 
   results <- list()
   success <- function(x){
@@ -50,58 +58,125 @@ check_url_raw <- function(full_path) {
     results <<- append(results, list(res))
   }
 
+  p <- progress_multi(length(full_path), labels = NULL, count = TRUE,
+                      progress = TRUE)
+
   for (i in seq_along(full_path)) {
-    h <- curl::new_handle(url = full_path[i])
-    curl::handle_setopt(h, nobody = 1L)
+    h <- curl::new_handle(url = full_path[i], progressfunction = p$callback)
+    curl::handle_setopt(h, nobody = 1L, connecttimeout = 200L,
+                        failonerror = FALSE)
     curl::multi_add(h, done = success, fail = failure)
   }
-  curl::multi_run()
-
+  curl::multi_run(timeout = 10)
+  
   results
 }
 
-check_url <- function(url_chk) {
+check_url <- function(full_path) {
 
-  .res <- check_url_raw(url_chk)
+  check_url_raw(full_path) %>%
+    purrr::map_df(
+      function(.x) {
+        if (is.list(.x) && exists("status_code", .x)) {
+          list(
+            valid = .x$status_code == 200L,
+            message = paste("HTTP status code:", .x$status_code))
+        } else {
+          list(
+            valid = FALSE,
+            message = .x
+          )
+        }
+      })
 
-  url_chk <- purrr::map_df(
-    .res,
-    function(.x) {
-      if (is.list(.x) && exists("status_code", .x))
-        list(status_code = as.character(.x$status_code))
-      else
-        list(status_code = .x)
-    })
-
-
-  url_chk
-
-}
-
-
-as_param_list <- function(.x) {
-  list(full_path = list(.x))
 }
 
 
 check_links <- function(dir = ".", recursive = TRUE, pattern = "html?$") {
 
   links <- fs::dir_ls(path = dir, recursive = recursive, regexp = pattern) %>%
-    purrr::map_df(extract_links_html, .id = "file")
+    purrr::map_df(extract_links_html, .id = "file") %>%
+    readr::write_csv("/tmp/res.csv")
 
   uniq_links <- dplyr::distinct(links, is_local, full_path)
 
   res <- uniq_links %>%
     dplyr::group_by(is_local) %>%
-    dplyr::summarize(pth = as_param_list(full_path)) %>%
+    tidyr::nest() %>%
     dplyr::mutate(
       fn = dplyr::case_when(
         is_local ~ "check_local_file",
         !is_local ~ "check_url",
         TRUE ~ "stop"
-      )) %>%
-    dplyr::mutate(
-      res = purrr::invoke_map(fn, pth)
-    )
+      ))
 
+  browser()
+  res <- dplyr::mutate(res,
+                       res = purrr::invoke_map(fn, data)
+                       )
+
+  res <- res %>%
+    tidyr::unnest()
+
+  dplyr::left_join(links, res, by = "full_path") %>%
+    dplyr::select(file, link, full_path, valid, message)
+
+}
+
+
+progress_multi <- function(i, labels, count, progress) {
+  label <- format(labels[[i]], width = max(nchar(labels)), justify = "right")
+  if (count) {
+    is <- format(i, width = nchar(length(labels)))
+    prefix <- sprintf("[%s/%s] %s", is, length(labels), label)
+  } else {
+    prefix <- label
+  }
+  bar <- NULL
+  type <- "down"
+  seen <- 0
+
+  if (progress) {
+    callback <- function(down, up) {
+      if (type == "down") {
+        total <- down[[1L]]
+        now <- down[[2L]]
+      } else {
+        total <- up[[1L]]
+        now <- up[[2L]]
+      }
+
+      if (total == 0 && now == 0) {
+        bar <<- NULL
+        seen <<- 0
+        return(TRUE)
+      }
+
+      if (is.null(bar)) {
+        if (total == 0) {
+          fmt <- paste0(prefix, " [ :bytes in :elapsed ]")
+          total <- 1e8 # arbitrarily big
+        } else {
+          fmt <- paste0(prefix, " [:percent :bar]")
+        }
+        bar <<- progress::progress_bar$new(fmt, total, clear = TRUE,
+                                           show_after = 0)
+      }
+      if (total == 0) {
+        bar$tick(now)
+      } else {
+        bar$tick(now - seen)
+        seen <<- now
+      }
+
+      TRUE
+    }
+  } else {
+    callback <- function(down, up) {
+      TRUE
+    }
+  }
+
+  list(callback = callback,
+       prefix = prefix)
 }
