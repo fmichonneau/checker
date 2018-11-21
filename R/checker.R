@@ -1,8 +1,16 @@
+##' @importFrom dplyr %>%
+##' @importFrom rlang .data
+
+##' @importFrom purrr map2_lgl
 is_local <- function(scheme, server, ...) {
   ## local files
-  purrr::map2_lgl(scheme, server, ~ .x == "" & .y == "")
+  purrr::map2_lgl(.data$scheme, .data$server, ~ .x == "" & .y == "")
 }
 
+
+##' @importFrom xml2 read_html xml_find_all xml_text url_parse
+##' @importFrom tibble data_frame
+##' @importFrom dplyr  bind_cols mutate
 extract_links_html  <- function(doc) {
 
   base_path <- dirname(normalizePath(doc))
@@ -19,21 +27,22 @@ extract_links_html  <- function(doc) {
       xml2::url_parse(links)
     ) %>%
   dplyr::mutate(
-    is_local = is_local(scheme, server),
+    is_local = is_local(.data$scheme, .data$server),
     full_path = dplyr::case_when(
       ## local files
-      is_local ~ file.path(base_path, path),
+      is_local ~ file.path(.data$base_path, .data$path),
       ## generic scheme (e.g. '//somewebsite.com')
-      scheme == "" ~ paste0("https:", link),
+      scheme == "" ~ paste0("https:", .data$link),
       ## regular links
-      TRUE ~ link
+      TRUE ~ .data$link
     )
   )
 
   res
 }
 
-
+##' @importFrom fs file_exists
+##' @importFrom purrr map_df
 check_local_file <- function(full_path) {
   fs::file_exists(full_path) %>%
     purrr::map_df(function(.x) {
@@ -46,6 +55,7 @@ check_local_file <- function(full_path) {
 
 
 ##' @importFrom progress progress_bar
+##' @importFrom curl new_handle handle_setopt multi_add multi_run
 check_url_raw <- function(full_path) {
 
   p <- progress::progress_bar$new(
@@ -78,6 +88,7 @@ check_url_raw <- function(full_path) {
   results
 }
 
+##' @importFrom purrr map_df
 check_url <- function(full_path) {
 
   check_url_raw(full_path) %>%
@@ -98,6 +109,29 @@ check_url <- function(full_path) {
 }
 
 
+##' @title Check links in your documents
+##'
+##' Currently only HTML files are supported
+##'
+##' @param dir The directory to look for documents
+##' @param recursive Should sub-folders be searched for documents? (default
+##'   `TRUE`).
+##' @param regexp A regular expression matching the names of the files to check.
+##' @param glob A wildcard pattern matching the names fo the files to check.
+##' @param only_broken Should the results include only the broken links
+##'   (default) or also the valid links?
+##' @param raise If set to `warning` or `error`, the function will raise a
+##'   warning or an error if broken links are found.
+##' @param ... additional parameters to be passed to `grep` to match the file
+##'   names to check.
+##' @return a tibble with the name of the file that includes the link, the link,
+##'   the expanded full path (useful for local/relative links), whether the link
+##'   is valid, and possibly the message/HTTP code returned by the server.
+##' @importFrom fs dir_ls
+##' @importFrom purrr map_df invoke_map
+##' @importFrom dplyr distinct mutate group_by case_when left_join select filter
+##' @importFrom tidyr nest unnest
+##' @export
 check_links <- function(dir = ".", recursive = TRUE,
                         regexp = "html?$", glob = NULL,
                         only_broken = TRUE,
@@ -114,10 +148,10 @@ check_links <- function(dir = ".", recursive = TRUE,
   ) %>%
     purrr::map_df(extract_links_html, .id = "file")
 
-  uniq_links <- dplyr::distinct(links, is_local, full_path)
+  uniq_links <- dplyr::distinct(links, .data$is_local, .data$full_path)
 
   res <- uniq_links %>%
-    dplyr::group_by(is_local) %>%
+    dplyr::group_by(.data$is_local) %>%
     tidyr::nest() %>%
     dplyr::mutate(
       fn = dplyr::case_when(
@@ -126,16 +160,17 @@ check_links <- function(dir = ".", recursive = TRUE,
         TRUE ~ "stop"
       )) %>%
     dplyr::mutate(
-      res = purrr::invoke_map(fn, data)
+      res = purrr::invoke_map(.data$fn, .data$data)
     ) %>%
     tidyr::unnest()
 
   out <- dplyr::left_join(links, res, by = "full_path") %>%
-    dplyr::select(file, link, full_path, valid, message)
+    dplyr::select(.data$file, .data$link,
+                  .data$full_path, .data$valid, .data$message)
 
   if (only_broken) {
     out <- out %>%
-      dplyr::filter(!valid)
+      dplyr::filter(!.data$valid)
   }
 
   summary_check_links(out)
@@ -146,6 +181,9 @@ check_links <- function(dir = ".", recursive = TRUE,
 
 }
 
+
+##' @importFrom crayon red green
+##' @importFrom cli symbol
 summary_check_links <- function(out) {
 
   n_broken <- sum(!out$valid)

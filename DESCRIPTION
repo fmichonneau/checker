@@ -7,8 +7,23 @@ Authors@R:
            role = c("aut", "cre"),
            email = "francois.michonneau@gmail.com")
 Description: Check URLs (internal, external, images, ...) in your documents.
+Imports:
+  cli,
+  crayon,
+  curl,
+  dplyr,
+  fs,
+  progress,
+  purrr,
+  rlang,
+  tidyr,
+  tibble,
+  xml2
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/fmichonneau/checker
 BugReports: https://github.com/fmichonneau/checker/issues
+RoxygenNote: 6.1.0
+Suggests: 
+    covr
