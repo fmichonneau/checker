@@ -24,7 +24,7 @@ extract_links_html  <- function(doc) {
       ## local files
       is_local ~ file.path(base_path, path),
       ## generic scheme (e.g. '//somewebsite.com')
-      scheme == "" ~ file.path("https://", path),
+      scheme == "" ~ paste0("http", link),
       ## regular links
       TRUE ~ link
     )
