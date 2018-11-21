@@ -48,8 +48,12 @@ check_local_file <- function(full_path) {
 ##' @importFrom progress progress_bar
 check_url_raw <- function(full_path) {
 
+  p <- progress::progress_bar$new(
+    total = length(full_path),
+    format = "  Checking link :current out of :total [:bar] :percent"
+  )
+
   results <- list()
-  p <- progress::progress_bar$new(total = length(full_path))
 
   success <- function(x) {
     p$tick()
