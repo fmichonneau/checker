@@ -67,11 +67,13 @@ check_url_raw <- function(full_path) {
 
   for (i in seq_along(full_path)) {
     h <- curl::new_handle(url = full_path[i])
-    curl::handle_setopt(h, nobody = 1L, connecttimeout = 200L,
+    curl::handle_setopt(h, nobody = 1L,
+                        connecttimeout = 5L,
+                        timeout = 10L,
                         failonerror = FALSE)
     curl::multi_add(h, done = success, fail = failure)
   }
-  curl::multi_run(timeout = 10)
+  curl::multi_run(timeout = 10L)
 
   results
 }
