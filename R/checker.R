@@ -13,7 +13,9 @@ is_local <- function(scheme, server, ...) {
 ##' @importFrom dplyr  bind_cols mutate
 extract_links_html  <- function(doc) {
 
-  base_path <- dirname(normalizePath(doc))
+  doc <- normalizePath(doc)
+
+  base_path <- dirname(doc)
 
   links <- xml2::read_html(doc) %>%
     xml2::xml_find_all(".//*[@href]/@href | .//*[@src]/@src") %>%
@@ -29,6 +31,8 @@ extract_links_html  <- function(doc) {
   dplyr::mutate(
     is_local = is_local(.data$scheme, .data$server),
     full_path = dplyr::case_when(
+      ## within document urls
+      is_local & substr(.data$link, 1, 1) == "#" ~ doc,
       ## local files
       is_local ~ file.path(base_path, .data$path),
       ## generic scheme (e.g. '//somewebsite.com')
@@ -36,7 +40,9 @@ extract_links_html  <- function(doc) {
       ## regular links
       TRUE ~ .data$link
     )
-  )
+  ) %>%
+  ## remove empty links
+  dplyr::filter(link != "#")
 
   res
 }
@@ -164,7 +170,8 @@ check_links <- function(dir = ".", recursive = TRUE,
     ) %>%
     tidyr::unnest()
 
-  out <- dplyr::left_join(links, res, by = "full_path") %>%
+  out <- dplyr::left_join(links, res, by = c("full_path", "is_local")) %>%
+    check_fragments() %>%
     dplyr::select(.data$file, .data$link,
                   .data$full_path, .data$valid, .data$message)
 
@@ -179,6 +186,49 @@ check_links <- function(dir = ".", recursive = TRUE,
 
   out
 
+}
+
+check_fragments_raw <- function(.data) {
+
+  purrr::pmap(.data, function(full_path, fragment, data, ...) {
+
+    if (!nzchar(fragment)) return(data)
+
+    doc_xml <- xml2::read_html(full_path, encoding = "utf-8")
+
+    test_string <- sprintf(".//*[@name=\"%s\"] | .//*[@id=\"%s\"]",
+                           fragment, fragment)
+
+    res_anchor  <- doc_xml %>%
+      xml2::xml_find_all(test_string) %>%
+      length()
+
+    if (res_anchor > 0L) {
+      res <- list(
+        valid = TRUE,
+        message = sprintf("Fragment ('%s') checked and found.", fragment)
+      )
+    } else {
+      res <- list(
+        valid = FALSE,
+        message = sprintf(
+          "URL is valid but fragment (hash reference): '%s' not found in page.",
+          fragment
+        )
+      )
+    }
+    tibble::as_tibble(res)
+  })
+
+}
+
+check_fragments <- function(.d, ...) {
+  .d %>%
+    tidyr::nest(valid, message) %>%
+    dplyr::mutate(
+      data = check_fragments_raw(.)
+    ) %>%
+    tidyr::unnest()
 }
 
 
