@@ -4,7 +4,7 @@
 ##' @importFrom purrr map2_lgl
 is_local <- function(scheme, server, ...) {
   ## local files
-  purrr::map2_lgl(.data$scheme, .data$server, ~ .x == "" & .y == "")
+  purrr::map2_lgl(scheme, server, ~ .x == "" & .y == "")
 }
 
 
@@ -30,7 +30,7 @@ extract_links_html  <- function(doc) {
     is_local = is_local(.data$scheme, .data$server),
     full_path = dplyr::case_when(
       ## local files
-      is_local ~ file.path(.data$base_path, .data$path),
+      is_local ~ file.path(base_path, .data$path),
       ## generic scheme (e.g. '//somewebsite.com')
       scheme == "" ~ paste0("https:", .data$link),
       ## regular links
