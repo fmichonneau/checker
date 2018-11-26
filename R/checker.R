@@ -261,8 +261,8 @@ handle_raise <- function(out, raise) {
   if (sum(!out$valid) > 0) {
     switch(raise,
            ok = NULL,
-           warning = warning(msg),
-           error = stop(msg))
+           warning = warning(msg, call. = FALSE),
+           error = stop(msg, call. = FALSE))
   }
 
 }
