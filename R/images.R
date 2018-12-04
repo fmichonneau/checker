@@ -33,9 +33,21 @@ extract_img_html <- function(doc) {
 
 }
 
+make_path_rel <- function(.data, dir, show_full_path) {
+  if (show_full_path)
+    return(.data)
+
+  dir <- normalizePath(dir)
+
+  .data %>%
+    dplyr::mutate(
+      file = gsub(dir, ".", .data$file)
+    )
+}
 
 check_images <- function(dir = ".", recursive = TRUE,
                          regexp = "html?$", glob = NULL,
+                         show_full_path = FALSE,
                          ...) {
 
   images <- fs::dir_ls(
@@ -45,7 +57,8 @@ check_images <- function(dir = ".", recursive = TRUE,
     glob = glob,
     ...
   ) %>%
-    purrr::map_df(extract_img_html, .id = "file")
+    purrr::map_df(extract_img_html, .id = "file") %>%
+  make_path_rel(dir = dir, show_full_path = show_full_path)
 
   images
 
