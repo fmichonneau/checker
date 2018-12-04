@@ -63,3 +63,33 @@ check_images <- function(dir = ".", recursive = TRUE,
   images
 
 }
+
+summary_check_images <- function(.dt) {
+
+  orange <- crayon::make_style("orange")
+
+  generic_msg <- function(.dt, ...) {
+    cat(orange(crayon::bold(
+      cli::symbol$warning, "No 'alt' text for the following images:\n")
+      ))
+    .dt
+  }
+
+  .dt %>%
+    dplyr::filter(is.na(.data$alt)) %>%
+    split(.$file) %>%
+    generic_msg() %>%
+    purrr::walk(
+      function(.x) {
+        cat(
+          crayon::green(
+            paste("  ", cli::symbol$bullet, " in `",
+                  crayon::underline(unique(.x$file)), "`\n",
+                  sep = "")))
+        purrr::pwalk(.x,
+                     function(file, src, alt, ...) {
+                       cat(paste("    ", src, "\n"))
+                     })
+      }
+    )
+}
