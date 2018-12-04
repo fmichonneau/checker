@@ -12,6 +12,7 @@ extract_img_html <- function(doc) {
                        xml2::xml_text()) %>%
     purrr::map_chr(function(.x) {
       if (length(.x) == 0L) return(NA_character_)
+      if (grepl("^data:", .x)) return("<data URI>")
       .x
     })
 
