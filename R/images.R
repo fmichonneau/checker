@@ -33,18 +33,6 @@ extract_img_html <- function(doc) {
 
 }
 
-make_path_rel <- function(.data, dir, show_full_path) {
-  if (show_full_path)
-    return(.data)
-
-  dir <- normalizePath(dir)
-
-  .data %>%
-    dplyr::mutate(
-      file = gsub(dir, ".", .data$file)
-    )
-}
-
 check_images <- function(dir = ".", recursive = TRUE,
                          regexp = "\\.html?$", glob = NULL,
                          show_full_path = FALSE,
@@ -66,19 +54,18 @@ check_images <- function(dir = ".", recursive = TRUE,
 
 summary_check_images <- function(.dt) {
 
-  orange <- crayon::make_style("orange")
-
-  generic_msg <- function(.dt, ...) {
-    cat(orange(crayon::bold(
-      cli::symbol$warning, "No 'alt' text for the following images:\n")
-      ))
-    .dt
+  if (nrow(.dt) == 0L || sum(is.na(.dt$alt)) == 0L) {
+    generic_msg(msg = "All images passed the checks.\n", type = "ok")
+    return(.dt)
   }
 
   .dt %>%
     dplyr::filter(is.na(.data$alt)) %>%
     split(.$file) %>%
-    generic_msg() %>%
+    generic_msg(
+      msg = "No 'alt' text for the following images:\n",
+      type = "warning"
+    ) %>%
     purrr::walk(
       function(.x) {
         cat(
@@ -92,4 +79,6 @@ summary_check_images <- function(.dt) {
                      })
       }
     )
+
+  .dt
 }
