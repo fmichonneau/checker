@@ -1,10 +1,14 @@
 ##' @importFrom dplyr %>%
 ##' @importFrom rlang .data
 
-##' @importFrom purrr map2_lgl
-is_local <- function(scheme, server, ...) {
-  ## local files
-  purrr::map2_lgl(scheme, server, ~ .x == "" & .y == "")
+##' @importFrom dplyr case_when
+uri_type <- function(scheme, server, ...) {
+  dplyr::case_when(
+    scheme == "data" ~ "data",
+    scheme == "mailto" ~ "mailto",
+    scheme == "" & server == "" ~ "local",
+    TRUE ~ "external"
+  )
 }
 
 
@@ -29,16 +33,22 @@ extract_links_html  <- function(doc) {
       xml2::url_parse(links)
     ) %>%
   dplyr::mutate(
-    is_local = is_local(.data$scheme, .data$server),
+    uri_type = uri_type(.data$scheme, .data$server),
     full_path = dplyr::case_when(
       ## within document urls
-      is_local & substr(.data$link, 1, 1) == "#" ~ doc,
+      uri_type == "local" & substr(.data$link, 1, 1) == "#" ~ doc,
       ## local files
-      is_local ~ file.path(base_path, .data$path),
+      uri_type == "local" ~ file.path(base_path, .data$path),
       ## generic scheme (e.g. '//somewebsite.com')
       scheme == "" ~ paste0("https:", .data$link),
-      ## regular links
+      ## data URI
+      scheme == "data" ~ "<data URI>",
+      ## other links
       TRUE ~ .data$link
+    ),
+    link = dplyr::case_when(
+      uri_type == "data" ~ substr(link, 1, 100),
+      TRUE ~ link
     )
   ) %>%
   ## remove empty links
@@ -52,9 +62,15 @@ extract_links_html  <- function(doc) {
 check_local_file <- function(full_path) {
   fs::file_exists(full_path) %>%
     purrr::map_df(function(.x) {
+      if (!.x) {
+        msg  <- "File referenced by URL doesn't exist."
+      } else {
+        msg <- "File exists."
+      }
+
       list(
         valid = .x,
-        message = NA_character_
+        message = msg
       )
     })
 }
@@ -117,7 +133,9 @@ check_url <- function(full_path) {
 
 ##' @title Check links in your documents
 ##'
-##' Currently only HTML files are supported
+##' Currently only HTML files are supported.
+##'
+##' @details Data URI and \code{mailto:} links are not checked.
 ##'
 ##' @param dir The directory to look for documents
 ##' @param recursive Should sub-folders be searched for documents? (default
@@ -154,23 +172,25 @@ check_links <- function(dir = ".", recursive = TRUE,
   ) %>%
     purrr::map_df(extract_links_html, .id = "file")
 
-  uniq_links <- dplyr::distinct(links, .data$is_local, .data$full_path)
+  uniq_links <- dplyr::distinct(links, .data$uri_type, .data$full_path)
 
+  browser()
   res <- uniq_links %>%
-    dplyr::group_by(.data$is_local) %>%
+    dplyr::group_by(.data$uri_type) %>%
     tidyr::nest() %>%
     dplyr::mutate(
       fn = dplyr::case_when(
-        is_local ~ "check_local_file",
-        !is_local ~ "check_url",
+        uri_type == "local" ~ "check_local_file",
+        uri_type == "external" ~ "check_url",
+        uri_type %in% c("mailto", "data") ~ "no_check",
         TRUE ~ "stop"
       )) %>%
     dplyr::mutate(
       res = purrr::invoke_map(.data$fn, .data$data)
-    ) %>%
+    )  %>%
     tidyr::unnest()
 
-  out <- dplyr::left_join(links, res, by = c("full_path", "is_local")) %>%
+  out <- dplyr::left_join(links, res, by = c("full_path", "uri_type")) %>%
     check_fragments() %>%
     dplyr::select(.data$file, .data$link,
                   .data$full_path, .data$valid, .data$message)
@@ -184,7 +204,7 @@ check_links <- function(dir = ".", recursive = TRUE,
 
   handle_raise(out, raise)
 
-  out
+  invisible(out)
 
 }
 
@@ -208,19 +228,19 @@ check_fragments_raw <- function(.data) {
         valid = TRUE,
         message = sprintf("Fragment ('%s') checked and found.", fragment)
       )
-    } else {
-      res <- list(
-        valid = FALSE,
-        message = sprintf(
-          "URL is valid but fragment (hash reference): '%s' not found in page.",
-          fragment
+      } else {
+        res <- list(
+          valid = FALSE,
+          message = sprintf(
+            "URL is valid but fragment (hash reference): '%s' not found in page.",
+            fragment
+          )
         )
-      )
-    }
-    tibble::as_tibble(res)
-  })
+      }
+      tibble::as_tibble(res)
+    })
 
-}
+  }
 
 check_fragments <- function(.d, ...) {
   .d %>%
