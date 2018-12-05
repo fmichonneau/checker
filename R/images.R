@@ -46,7 +46,7 @@ make_path_rel <- function(.data, dir, show_full_path) {
 }
 
 check_images <- function(dir = ".", recursive = TRUE,
-                         regexp = "html?$", glob = NULL,
+                         regexp = "\\.html?$", glob = NULL,
                          show_full_path = FALSE,
                          ...) {
 

@@ -139,7 +139,7 @@ check_url <- function(full_path) {
 ##' @importFrom tidyr nest unnest
 ##' @export
 check_links <- function(dir = ".", recursive = TRUE,
-                        regexp = "html?$", glob = NULL,
+                        regexp = "\\.html?$", glob = NULL,
                         only_broken = TRUE,
                         raise = c("ok", "warning", "error"), ...) {
 
