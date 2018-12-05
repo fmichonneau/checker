@@ -234,23 +234,40 @@ check_fragments <- function(.d, ...) {
 
 ##' @importFrom crayon red green
 ##' @importFrom cli symbol
-summary_check_links <- function(out) {
+summary_check_links <- function(.dt) {
 
-  n_broken <- sum(!out$valid)
-  n_valid <- sum(out$valid)
+  n_broken <- sum(!.dt$valid)
+  n_valid <- sum(.dt$valid)
 
-  if (n_broken > 0) {
-    cat(crayon::red(cli::symbol$cross,  n_broken, "links are broken.\n"))
+  if (n_valid == nrow(.dt)) {
+    generic_msg(msg = "No broken links found.\n",
+                type = "ok")
+    return(.dt)
   }
 
-  if (n_valid > 0) {
-    cat(crayon::green(cli::symbol$tick, n_valid, "links are valid.\n"))
-  }
+  .dt %>%
+    dplyr::filter(!.data$valid) %>%
+    split(.$file) %>%
+    generic_msg(
+      msg = paste(n_broken, " broken links found\n"),
+      type = "error"
+    ) %>%
+    purrr::walk(
+      function(.x) {
+        cat(
+          crayon::green(
+            paste("  ", cli::symbol$bullet, " in `",
+                  crayon::underline(unique(.x$file)), "`\n",
+                  sep = "")))
+        purrr::pwalk(.x,
+                     function(file, link, full_path, message, ...) {
+                       cat(paste("    - link:", link,
+                                 "\n      message: ", message, "\n"))
+                     })
+      }
+    )
 
-  if (n_valid == nrow(out)) {
-    cat(crayon::green(cli::symbol$tick, " No broken links found.\n"))
-  }
-
+  .dt
 }
 
 
