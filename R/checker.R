@@ -87,23 +87,40 @@ check_url_raw <- function(full_path) {
 
   results <- list()
 
-  success <- function(x) {
-    p$tick()
-    results <<- append(results, list(x))
-  }
-  failure <- function(str) {
-    p$tick()
-    res <- paste("Failed request:", str)
-    results <<- append(results, list(res))
-  }
-
   for (i in seq_along(full_path)) {
     h <- curl::new_handle(url = full_path[i])
+
+    success <- function() {
+      orig_url <- full_path[i]
+      function(x) {
+        p$tick()
+        results <<- append(results, list(
+          append(
+            c(original_url = orig_url),
+            x
+          )
+        ))
+      }
+    }
+
+    failure <- function() {
+      orig_url <- full_path[i]
+      function(str) {
+        p$tick()
+        res <- paste("Failed request: ", str)
+        results <<- append(results, list(
+            append(
+              c(origin_url = orig_url),
+              res)
+          ))
+      }
+    }
+
     curl::handle_setopt(h, nobody = 1L,
                         connecttimeout = 5L,
                         timeout = 10L,
                         failonerror = FALSE)
-    curl::multi_add(h, done = success, fail = failure)
+    curl::multi_add(h, done = success(), fail = failure())
   }
   curl::multi_run(timeout = 10L)
 
