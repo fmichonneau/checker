@@ -205,7 +205,6 @@ check_links <- function(dir = ".", recursive = TRUE,
 
   uniq_links <- dplyr::distinct(links, .data$uri_type, .data$full_path)
 
-  browser()
   res <- uniq_links %>%
     dplyr::group_by(.data$uri_type) %>%
     tidyr::nest() %>%
