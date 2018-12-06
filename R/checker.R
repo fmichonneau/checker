@@ -153,6 +153,12 @@ check_url <- function(full_path) {
   res <- res[match(full_path, res$url), ]
   dplyr::select(res, -.data$url)
 }
+
+no_check <- function(...) {
+  tibble::tibble(
+    valid = NA,
+    message = ""
+  )
 }
 
 
