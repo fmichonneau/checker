@@ -117,12 +117,13 @@ check_url_raw <- function(full_path) {
     }
 
     curl::handle_setopt(h, nobody = 1L,
-                        connecttimeout = 5L,
-                        timeout = 10L,
+                        connecttimeout = 10L,
+                        timeout = 15L,
                         failonerror = FALSE)
     curl::multi_add(h, done = success(), fail = failure())
   }
-  curl::multi_run(timeout = 10L)
+
+  curl::multi_run(timeout = 15L)
 
   results
 }
