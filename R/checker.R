@@ -128,24 +128,31 @@ check_url_raw <- function(full_path) {
   results
 }
 
+
 ##' @importFrom purrr map_df
 check_url <- function(full_path) {
 
-  check_url_raw(full_path) %>%
+  res <- check_url_raw(full_path) %>%
     purrr::map_df(
       function(.x) {
         if (is.list(.x) && exists("status_code", .x)) {
           list(
+            url = .x$original_url,
             valid = .x$status_code == 200L,
             message = paste("HTTP status code:", .x$status_code))
         } else {
           list(
+            url = .x$original_url,
             valid = FALSE,
             message = .x
           )
         }
-      })
+      }
+    )
 
+  res <- res[match(full_path, res$url), ]
+  dplyr::select(res, -.data$url)
+}
 }
 
 
