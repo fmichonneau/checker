@@ -25,11 +25,3 @@ generic_msg <- function(.dt = NULL,
   .dt
 
 }
-
-
-summary_checks <- function(.dt) {
-
-  .dt
-
-
-}
