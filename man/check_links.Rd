@@ -4,9 +4,9 @@
 \alias{check_links}
 \title{Check links in your documents
 
-Currently only HTML files are supported}
+Currently only HTML files are supported.}
 \usage{
-check_links(dir = ".", recursive = TRUE, regexp = "html?$",
+check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
   glob = NULL, only_broken = TRUE, raise = c("ok", "warning",
   "error"), ...)
 }
@@ -37,5 +37,8 @@ a tibble with the name of the file that includes the link, the link,
 \description{
 Check links in your documents
 
-Currently only HTML files are supported
+Currently only HTML files are supported.
+}
+\details{
+Data URI and \code{mailto:} links are not checked.
 }

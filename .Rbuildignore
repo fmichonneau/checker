@@ -1,6 +1,7 @@
 ^codecov\.yml$
 ^CODE_OF_CONDUCT\.md$
 ^README\.Rmd$
+^README\.html$
 ^\.travis\.yml$
 ^LICENSE\.md$
 ^checker\.Rproj$
