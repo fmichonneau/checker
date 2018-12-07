@@ -52,7 +52,7 @@ extract_links_html  <- function(doc) {
     )
   ) %>%
   ## remove empty links
-  dplyr::filter(link != "#")
+  dplyr::filter(.data$link != "#")
 
   res
 }
@@ -126,6 +126,7 @@ check_url_raw <- function(full_path) {
     curl::multi_add(h, done = success(), fail = failure())
   }
 
+
   curl::multi_run(timeout = 15L)
 
   results
@@ -138,7 +139,7 @@ check_url <- function(full_path) {
   res <- check_url_raw(full_path) %>%
     purrr::map_df(
       function(.x) {
-        if (is.list(.x) && exists("status_code", .x)) {
+        if (exists("status_code", .x)) {
           list(
             url = .x$original_url,
             valid = .x$status_code == 200L,
@@ -147,14 +148,14 @@ check_url <- function(full_path) {
           list(
             url = .x$original_url,
             valid = FALSE,
-            message = .x
+            message = .x$message
           )
         }
       }
     )
 
-  res <- res[match(full_path, res$url), ]
-  dplyr::select(res, -.data$url)
+  res <- res[match(full_path, res$url), c("valid", "message")]
+  res
 }
 
 no_check <- function(...) {
@@ -223,7 +224,9 @@ check_links <- function(dir = ".", recursive = TRUE,
     )  %>%
     tidyr::unnest()
 
-  out <- dplyr::left_join(links, res, by = c("full_path", "uri_type")) %>%
+  out <- dplyr::left_join(links, res, by = c("full_path", "uri_type"))
+
+  out <- out %>%
     check_fragments() %>%
     dplyr::select(.data$file, .data$link,
                   .data$full_path, .data$valid, .data$message)
@@ -241,9 +244,9 @@ check_links <- function(dir = ".", recursive = TRUE,
 
 }
 
-check_fragments_raw <- function(.data) {
+check_fragments_raw <- function(.dt, ...) {
 
-  purrr::pmap(.data, function(full_path, fragment, data, ...) {
+  purrr::pmap(.dt, function(full_path, fragment, data, ...) {
 
     if (!nzchar(fragment)) return(data)
 
@@ -276,10 +279,14 @@ check_fragments_raw <- function(.data) {
   }
 
 check_fragments <- function(.d, ...) {
+  .d <- .d %>%
+    tidyr::nest(.data$valid, .data$message)
+
+  .d_res <- check_fragments_raw(.d)
+
   .d %>%
-    tidyr::nest(valid, message) %>%
     dplyr::mutate(
-      data = check_fragments_raw(.)
+      data = .d_res
     ) %>%
     tidyr::unnest()
 }
@@ -298,9 +305,10 @@ summary_check_links <- function(.dt) {
     return(.dt)
   }
 
-  .dt %>%
-    dplyr::filter(!.data$valid) %>%
-    split(.$file) %>%
+  .dt <- .dt %>%
+    dplyr::filter(!.data$valid)
+
+  split(.dt, .dt$file) %>%
     generic_msg(
       msg = paste(n_broken, " broken links found\n"),
       type = "error"

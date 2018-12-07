@@ -61,7 +61,7 @@ summary_check_images <- function(.dt) {
 
   .dt %>%
     dplyr::filter(is.na(.data$alt)) %>%
-    split(.$file) %>%
+    split(.data$file) %>%
     generic_msg(
       msg = "No 'alt' text for the following images:\n",
       type = "warning"
