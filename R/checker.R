@@ -107,12 +107,15 @@ check_url_raw <- function(full_path) {
       orig_url <- full_path[i]
       function(str) {
         p$tick()
-        res <- paste("Failed request: ", str)
-        results <<- append(results, list(
-            append(
-              c(origin_url = orig_url),
-              res)
-          ))
+        results <<- append(
+          results,
+          list(
+            list(
+              original_url = orig_url,
+              message = paste("Failed request: ", str)
+            )
+          )
+        )
       }
     }
 
