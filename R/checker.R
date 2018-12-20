@@ -85,37 +85,37 @@ check_url_raw <- function(full_path) {
     format = "  Checking link :current out of :total [:bar] :percent"
   )
 
-  results <- list()
+  results <- vector("list", length(full_path))
+  chkr_pool <- curl::new_pool(total_con = length(full_path), host_con = 6,
+                              multiplex = TRUE)
+
 
   for (i in seq_along(full_path)) {
     h <- curl::new_handle(url = full_path[i])
 
     success <- function() {
       orig_url <- full_path[i]
+      idx <- i
       function(x) {
         p$tick()
-        results <<- append(results, list(
-          append(
-            c(original_url = orig_url),
+        results[[idx]] <<-
+          c(
+            original_url = orig_url,
             x
           )
-        ))
       }
     }
 
     failure <- function() {
       orig_url <- full_path[i]
+      idx <- i
       function(str) {
         p$tick()
-        results <<- append(
-          results,
-          list(
-            list(
-              original_url = orig_url,
-              message = paste("Failed request: ", str)
-            )
+        results[[idx]] <<-
+          c(
+            original_url = orig_url,
+            message = paste("Failed request: ", str)
           )
-        )
       }
     }
 
@@ -123,11 +123,10 @@ check_url_raw <- function(full_path) {
                         connecttimeout = 10L,
                         timeout = 15L,
                         failonerror = FALSE)
-    curl::multi_add(h, done = success(), fail = failure())
+    curl::multi_add(h, done = success(), fail = failure(),
+                    pool = chkr_pool)
   }
-
-
-  curl::multi_run(timeout = 15L)
+  curl::multi_run(pool = chkr_pool)
 
   results
 }
@@ -136,7 +135,7 @@ check_url_raw <- function(full_path) {
 ##' @importFrom purrr map_df
 check_url <- function(full_path) {
 
-  res <- check_url_raw(full_path) %>%
+  check_url_raw(full_path) %>%
     purrr::map_df(
       function(.x) {
         if (exists("status_code", .x)) {
@@ -154,8 +153,6 @@ check_url <- function(full_path) {
       }
     )
 
-  res <- res[match(full_path, res$url), c("valid", "message")]
-  res
 }
 
 no_check <- function(...) {
