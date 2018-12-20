@@ -21,38 +21,47 @@ extract_links_html  <- function(doc) {
 
   base_path <- dirname(doc)
 
-  links <- xml2::read_html(doc) %>%
-    xml2::xml_find_all(".//*[@href]/@href | .//*[@src]/@src") %>%
-    xml2::xml_text() %>%
-    unique()
+  all_links <- xml2::read_html(doc) %>%
+    xml2::xml_find_all(".//*[@href] | .//*[@src]")
 
-  res <- tibble::data_frame(
-    link = links
+  link_targets <- all_links %>%
+    xml2::xml_find_all(".//@href | .//@src") %>%
+    xml2::xml_text()
+
+  link_text <- all_links %>%
+    xml2::xml_text()
+
+  tbl_links <- tibble::data_frame(
+    link = link_targets,
+    link_text = link_text
   ) %>%
+    dplyr::distinct(link, link_text)
+
+  res <- tbl_links %>%
     dplyr::bind_cols(
-      xml2::url_parse(links)
+      xml2::url_parse(tbl_links$link)
     ) %>%
-  dplyr::mutate(
-    uri_type = uri_type(.data$scheme, .data$server),
-    full_path = dplyr::case_when(
-      ## within document urls
-      uri_type == "local" & substr(.data$link, 1, 1) == "#" ~ doc,
-      ## local files
-      uri_type == "local" ~ file.path(base_path, .data$path),
-      ## generic scheme (e.g. '//somewebsite.com')
-      scheme == "" ~ paste0("https:", .data$link),
-      ## data URI
-      scheme == "data" ~ "<data URI>",
-      ## other links
-      TRUE ~ .data$link
-    ),
-    link = dplyr::case_when(
-      uri_type == "data" ~ substr(link, 1, 100),
-      TRUE ~ link
-    )
-  ) %>%
-  ## remove empty links
-  dplyr::filter(.data$link != "#")
+    dplyr::mutate(
+      uri_type = uri_type(.data$scheme, .data$server),
+      full_path = dplyr::case_when(
+        ## within document urls
+        uri_type == "local" & substr(.data$link, 1, 1) == "#" ~ doc,
+        ## local files
+        uri_type == "local" ~ as.character(fs::path_abs(.data$path, start = base_path)),
+        ## generic scheme (e.g. '//somewebsite.com')
+        scheme == "" ~ paste0("https:", .data$link),
+        ## data URI
+        scheme == "data" ~ "<data URI>",
+        ## other links
+        TRUE ~ .data$link
+      ),
+      link = dplyr::case_when(
+        uri_type == "data" ~ substr(link, 1, 100),
+        TRUE ~ link
+      )
+    ) %>%
+    ## remove empty links
+    dplyr::filter(.data$link != "#")
 
   res
 }
@@ -225,7 +234,7 @@ check_links <- function(dir = ".", recursive = TRUE,
 
   out <- out %>%
     check_fragments() %>%
-    dplyr::select(.data$file, .data$link,
+    dplyr::select(.data$file, .data$link, .data$link_text,
                   .data$full_path, .data$valid, .data$message)
 
   if (only_broken) {
