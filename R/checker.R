@@ -46,7 +46,9 @@ extract_links_html  <- function(doc) {
       full_path = dplyr::case_when(
         ## within document urls
         uri_type == "local" & substr(.data$link, 1, 1) == "#" ~ doc,
-        ## local files
+        ## local files with path from root
+        uri_type == "local" & substr(.data$link, 1, 1) == "/" ~ as.character(fs::path(base_path, .data$path)),
+        ## local files with relative paths
         uri_type == "local" ~ as.character(fs::path_abs(.data$path, start = base_path)),
         ## generic scheme (e.g. '//somewebsite.com')
         scheme == "" ~ paste0("https:", .data$link),
@@ -69,8 +71,10 @@ extract_links_html  <- function(doc) {
 ##' @importFrom fs file_exists
 ##' @importFrom purrr map_df
 check_local_file <- function(full_path) {
-  fs::file_exists(full_path) %>%
-    purrr::map_df(function(.x) {
+  purrr::map2_df(
+    fs::file_exists(full_path),
+    full_path,
+    function(.x, .y) {
       if (!.x) {
         msg  <- "File referenced by URL doesn't exist."
       } else {
@@ -78,6 +82,7 @@ check_local_file <- function(full_path) {
       }
 
       list(
+        url = .y,
         valid = .x,
         message = msg
       )
@@ -121,7 +126,7 @@ check_url_raw <- function(full_path) {
       function(str) {
         p$tick()
         results[[idx]] <<-
-          c(
+          list(
             original_url = orig_url,
             message = paste("Failed request: ", str)
           )
@@ -142,35 +147,49 @@ check_url_raw <- function(full_path) {
 
 
 ##' @importFrom purrr map_df
-check_url <- function(full_path) {
+check_url <- function(full_path, ...) {
 
   check_url_raw(full_path) %>%
     purrr::map_df(
       function(.x) {
         if (exists("status_code", .x)) {
-          list(
-            url = .x$original_url,
-            valid = .x$status_code == 200L,
-            message = paste("HTTP status code:", .x$status_code))
-        } else {
-          list(
-            url = .x$original_url,
-            valid = FALSE,
-            message = .x$message
-          )
-        }
+            list(
+              url = .x$original_url,
+              valid = .x$status_code == 200L,
+              message = paste("HTTP status code:", .x$status_code))
+          } else {
+            list(
+              url = .x$original_url,
+              valid = FALSE,
+              message = .x$message
+            )
+          }
       }
     )
 
 }
 
-no_check <- function(...) {
+no_check <- function(full_path, ...) {
   tibble::tibble(
+    url = full_path,
     valid = NA,
     message = ""
   )
 }
 
+
+extract_all_links <- function(dir, recursive, regexp, glob, ...) {
+
+  fs::dir_ls(
+    path = dir,
+    recursive = recursive,
+    regexp = regexp,
+    glob = glob,
+    ...
+  ) %>%
+    purrr::map_df(extract_links_html, .id = "file")
+
+}
 
 ##' @title Check links in your documents
 ##'
@@ -204,14 +223,8 @@ check_links <- function(dir = ".", recursive = TRUE,
 
   raise <- match.arg(raise)
 
-  links <- fs::dir_ls(
-    path = dir,
-    recursive = recursive,
-    regexp = regexp,
-    glob = glob,
-    ...
-  ) %>%
-    purrr::map_df(extract_links_html, .id = "file")
+  links <- extract_all_links(dir = dir, recursive = recursive,
+    regexp = regexp, glob = glob, ...)
 
   uniq_links <- dplyr::distinct(links, .data$uri_type, .data$full_path)
 
@@ -227,7 +240,7 @@ check_links <- function(dir = ".", recursive = TRUE,
       )) %>%
     dplyr::mutate(
       res = purrr::invoke_map(.data$fn, .data$data)
-    )  %>%
+    ) %>%
     tidyr::unnest()
 
   out <- dplyr::left_join(links, res, by = c("full_path", "uri_type"))
@@ -235,7 +248,7 @@ check_links <- function(dir = ".", recursive = TRUE,
   out <- out %>%
     check_fragments() %>%
     dplyr::select(.data$file, .data$link, .data$link_text,
-                  .data$full_path, .data$valid, .data$message)
+      .data$full_path, .data$valid, .data$message)
 
   if (only_broken) {
     out <- out %>%
@@ -255,6 +268,16 @@ check_fragments_raw <- function(.dt, ...) {
   purrr::pmap(.dt, function(full_path, fragment, data, ...) {
 
     if (!nzchar(fragment)) return(data)
+
+    if (!fs::file_exists(full_path)) {
+      return(
+        tibble::tibble(
+          valid = FALSE,
+          message = sprintf("Local URL '%s' doesn't exist.",
+            full_path)
+        )
+      )
+    }
 
     doc_xml <- xml2::read_html(full_path, encoding = "utf-8")
 
@@ -328,8 +351,9 @@ summary_check_links <- function(.dt) {
                   sep = "")))
         purrr::pwalk(.x,
                      function(file, link, full_path, message, ...) {
-                       cat(paste("    - link:", link,
-                                 "\n      message: ", message, "\n"))
+                       cat(paste(
+                         "    - link:", link, "\n",
+                         "     message: ", message, "\n"))
                      })
       }
     )
