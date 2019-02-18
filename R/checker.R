@@ -404,8 +404,10 @@ summary_check_links <- function(.dt, by) {
     ) %>%
     display
 
-  .dt
+  invisible(.dt)
 }
+
+
 
 
 handle_raise <- function(out, raise) {
