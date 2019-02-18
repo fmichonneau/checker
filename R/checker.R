@@ -345,10 +345,16 @@ summary_check_links <- function(.dt, by) {
               crayon::underline(unique(.x$file)), "`\n",
               sep = "")))
         purrr::pwalk(.x,
-          function(file, link, full_path, message, ...) {
+          function(file, link, link_text, full_path, message, ...) {
+            if (nchar(link_text) > 0) {
+              txt <- paste0("      text: ", dQuote(link_text), "\n")
+            } else {
+              txt <- character(0)
+            }
             cat(paste0(
               "    - link: `", link, "`\n",
-              "     message: ", sQuote(message), "\n"))
+              txt,
+              "      message: ", sQuote(message), "\n"))
           })
       }
     )
