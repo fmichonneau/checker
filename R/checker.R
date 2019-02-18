@@ -382,12 +382,13 @@ summary_check_links <- function(.dt, by) {
       }
     )
 
-  .dt <- .dt %>%
-  dplyr::filter(!.data$valid)
+  .dt_broken <- .dt %>%
+    dplyr::filter(!.data$valid)
 
   out <- switch(by,
-    page = split(.dt, .dt$file),
-    resource = split(.dt, list(.dt$link, .dt$message)) %>%
+    page = split(.dt_broken, .dt_broken$file),
+    resource = split(.dt_broken,
+      list(.dt_broken$link, .dt_broken$message)) %>%
       purrr::keep(~ nrow(.) > 0)
   )
 
