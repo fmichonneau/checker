@@ -219,9 +219,11 @@ extract_all_links <- function(dir, recursive, regexp, glob, ...) {
 check_links <- function(dir = ".", recursive = TRUE,
                         regexp = "\\.html?$", glob = NULL,
                         only_broken = TRUE,
-                        raise = c("ok", "warning", "error"), ...) {
+                        raise = c("ok", "warning", "error"),
+                        by = c("page", "resource"), ...) {
 
   raise <- match.arg(raise)
+  by <- match.arg(by)
 
   links <- extract_all_links(dir = dir, recursive = recursive,
     regexp = regexp, glob = glob, ...)
@@ -255,7 +257,7 @@ check_links <- function(dir = ".", recursive = TRUE,
       dplyr::filter(!.data$valid)
   }
 
-  summary_check_links(out)
+  summary_check_links(out, by)
 
   handle_raise(out, raise)
 
@@ -323,40 +325,77 @@ check_fragments <- function(.d, ...) {
 
 ##' @importFrom crayon red green
 ##' @importFrom cli symbol
-summary_check_links <- function(.dt) {
+summary_check_links <- function(.dt, by) {
 
   n_broken <- sum(!.dt$valid)
   n_valid <- sum(.dt$valid)
 
-  if (n_valid == nrow(.dt)) {
+  if (identical(n_valid, nrow(.dt))) {
     generic_msg(msg = "No broken links found.\n",
-                type = "ok")
+      type = "ok")
     return(.dt)
   }
 
-  .dt <- .dt %>%
-    dplyr::filter(!.data$valid)
-
-  split(.dt, .dt$file) %>%
-    generic_msg(
-      msg = paste(n_broken, " broken links found\n"),
-      type = "error"
-    ) %>%
+  page_output <- . %>%
     purrr::walk(
       function(.x) {
         cat(
           crayon::green(
             paste("  ", cli::symbol$bullet, " in `",
-                  crayon::underline(unique(.x$file)), "`\n",
-                  sep = "")))
+              crayon::underline(unique(.x$file)), "`\n",
+              sep = "")))
         purrr::pwalk(.x,
-                     function(file, link, full_path, message, ...) {
-                       cat(paste(
-                         "    - link:", link, "\n",
-                         "     message: ", message, "\n"))
-                     })
+          function(file, link, full_path, message, ...) {
+            cat(paste0(
+              "    - link: `", link, "`\n",
+              "     message: ", sQuote(message), "\n"))
+          })
       }
     )
+
+  resource_output <- . %>%
+    purrr::walk(
+      function(.x) {
+        .rsrc <- unique(.x$link)
+        .msg <- unique(.x$message)
+        cat(
+          crayon::green(
+            paste0("  ", cli::symbol$bullet,
+              " Resource: `", crayon::underline(.rsrc), "`\n",
+              "    Message: ", sQuote(.msg), "\n")
+          ),
+          sep = ""
+        )
+        cat("    Found in:\n")
+        cat(
+          paste0(
+            "    - ", .x$file, "\n"
+          ),
+          sep = ""
+        )
+      }
+    )
+
+  .dt <- .dt %>%
+  dplyr::filter(!.data$valid)
+
+  out <- switch(by,
+    page = split(.dt, .dt$file),
+    resource = split(.dt, list(.dt$link, .dt$message)) %>%
+      purrr::keep(~ nrow(.) > 0)
+  )
+
+  display <- switch(by,
+    page = page_output,
+    resource = resource_output
+  )
+
+  out %>%
+    generic_msg(
+      msg = paste(n_broken, " broken links found:\n"),
+      type = "error"
+    ) %>%
+    display
 
   .dt
 }
