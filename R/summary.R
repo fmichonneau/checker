@@ -22,6 +22,6 @@ generic_msg <- function(.dt = NULL,
       icon, msg
     )))
 
-  .dt
+  invisible(.dt)
 
 }
