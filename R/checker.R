@@ -323,7 +323,7 @@ check_fragments <- function(.d, ...) {
 }
 
 
-##' @importFrom crayon red green
+##' @importFrom crayon red blue
 ##' @importFrom cli symbol
 summary_check_links <- function(.dt, by) {
 
@@ -340,7 +340,7 @@ summary_check_links <- function(.dt, by) {
     purrr::walk(
       function(.x) {
         cat(
-          crayon::green(
+          crayon::blue(
             paste("  ", cli::symbol$bullet, " in `",
               crayon::underline(unique(.x$file)), "`\n",
               sep = "")))
@@ -365,7 +365,7 @@ summary_check_links <- function(.dt, by) {
         .rsrc <- unique(.x$link)
         .msg <- unique(.x$message)
         cat(
-          crayon::green(
+          crayon::blue(
             paste0("  ", cli::symbol$bullet,
               " Resource: `", crayon::underline(.rsrc), "`\n",
               "    Message: ", sQuote(.msg), "\n")
