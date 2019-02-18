@@ -271,7 +271,7 @@ check_fragments_raw <- function(.dt, ...) {
 
     if (!nzchar(fragment)) return(data)
 
-    if (!fs::file_exists(full_path)) {
+    if (identical(uri_type, "local") && !fs::file_exists(full_path)) {
       return(
         tibble::tibble(
           valid = FALSE,
