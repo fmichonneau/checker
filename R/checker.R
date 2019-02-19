@@ -237,6 +237,17 @@ check_links <- function(dir = ".", recursive = TRUE,
   links <- extract_all_links(dir = dir, recursive = recursive,
     regexp = regexp, glob = glob, ...)
 
+  if (identical(nrow(links), 0L)) {
+    return(tibble::tibble(
+      file = character(0),
+      link = character(0),
+      link_text = character(0),
+      full_path = character(0),
+      valid = logical(0),
+      message = character(0)
+    ))
+  }
+
   uniq_links <- dplyr::distinct(links, .data$uri_type, .data$full_path)
 
   res <- uniq_links %>%
