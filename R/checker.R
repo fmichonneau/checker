@@ -178,14 +178,19 @@ no_check <- function(full_path, ...) {
 
 extract_all_links <- function(dir, recursive, regexp, glob, ...) {
 
-  fs::dir_ls(
+  list_files <- fs::dir_ls(
     path = dir,
     recursive = recursive,
     regexp = regexp,
     glob = glob,
     ...
-  ) %>%
-    purrr::map_df(extract_links_html, .id = "file")
+  )
+
+  if (identical(length(list_files), 0L)) {
+    warning("No files match your search.")
+  }
+
+  purrr::map_df(list_files, extract_links_html, .id = "file")
 
 }
 
