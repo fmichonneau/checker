@@ -2,7 +2,7 @@
 ##' @importFrom rlang .data
 
 ##' @importFrom dplyr case_when
-uri_type <- function(scheme, server, ...) {
+get_uri_type <- function(scheme, server, ...) {
   dplyr::case_when(
     scheme == "data" ~ "data",
     scheme == "mailto" ~ "mailto",
@@ -42,7 +42,7 @@ extract_links_html  <- function(doc) {
       xml2::url_parse(tbl_links$link)
     ) %>%
     dplyr::mutate(
-      uri_type = uri_type(.data$scheme, .data$server),
+      uri_type = get_uri_type(.data$scheme, .data$server),
       full_path = dplyr::case_when(
         ## within document urls
         uri_type == "local" & substr(.data$link, 1, 1) == "#" ~ doc,
