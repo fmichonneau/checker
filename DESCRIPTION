@@ -24,7 +24,7 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/fmichonneau/checker
 BugReports: https://github.com/fmichonneau/checker/issues
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Suggests: 
     covr,
     ggplot2,

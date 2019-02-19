@@ -8,7 +8,7 @@ Currently only HTML files are supported.}
 \usage{
 check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
   glob = NULL, only_broken = TRUE, raise = c("ok", "warning",
-  "error"), ...)
+  "error"), by = c("page", "resource"), ...)
 }
 \arguments{
 \item{dir}{The directory to look for documents}
@@ -26,6 +26,8 @@ check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
 \item{raise}{If set to `warning` or `error`, the function will raise a
 warning or an error if broken links are found.}
 
+\item{by}{How should the results of the checks be aggregated?}
+
 \item{...}{additional parameters to be passed to `grep` to match the file
 names to check.}
 }
@@ -41,4 +43,9 @@ Currently only HTML files are supported.
 }
 \details{
 Data URI and \code{mailto:} links are not checked.
+
+The \code{by} argument controls how the summary of the results is being
+displayed. Using \code{page} is typically more convenient for small sites,
+while \code{resource} works better for larger websites that use templates
+are more likely to have mispecified resources across many pages.
 }
