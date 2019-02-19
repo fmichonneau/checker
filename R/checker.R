@@ -31,7 +31,7 @@ extract_links_html  <- function(doc) {
   link_text <- all_links %>%
     xml2::xml_text()
 
-  tbl_links <- tibble::data_frame(
+  tbl_links <- tibble::tibble(
     link = link_targets,
     link_text = link_text
   ) %>%
