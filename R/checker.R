@@ -342,8 +342,8 @@ check_fragments <- function(.d, ...) {
 ##' @importFrom cli symbol
 summary_check_links <- function(.dt, by) {
 
-  n_broken <- sum(!.dt$valid)
-  n_valid <- sum(.dt$valid)
+  n_broken <- get_n_broken(.dt)
+  n_valid <- get_n_valid(.dt)
 
   if (identical(n_valid, nrow(.dt))) {
     generic_msg(msg = "No broken links found.\n",
@@ -422,18 +422,25 @@ summary_check_links <- function(.dt, by) {
   invisible(.dt)
 }
 
-
-
-
 handle_raise <- function(out, raise) {
 
   msg <- "Broken links found."
 
-  if (sum(!out$valid) > 0) {
+  if (get_n_broken(out) > 0) {
     switch(raise,
            ok = NULL,
            warning = warning(msg, call. = FALSE),
            error = stop(msg, call. = FALSE))
   }
 
+}
+
+
+
+get_n_broken <- function(dt) {
+  sum(!na.omit(dt)$valid)
+}
+
+get_n_valid <- function(dt) {
+  sum(na.omit(dt)$valid)
 }
