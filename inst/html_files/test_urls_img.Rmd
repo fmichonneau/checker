@@ -32,16 +32,16 @@ data_frame(
 
 * [valid](test_anchors.html)
 * [broken](test_foo_bar_missing.html)
-* [internal within valid](#protocol-tests)
-* [internal within invalid](#foo-bar-section)
-* [internal external valid](test_anchors.html#test-anchor)
-* [internal external invalid](test_anchors.html#foo-bar-section)
+* [local within valid](#protocol-tests)
+* [local within invalid](#foo-bar-section)
+* [local outside valid](test_anchors.html#test-anchor)
+* [local outside invalid](test_anchors.html#foo-bar-section)
 
 ## Images
 
 ### Broken local
 
-Handled with test_images.html (pandoc will detect broken paths).
+Handled with test_images.html (pandoc detects broken paths).
 
 ### Broken external
 

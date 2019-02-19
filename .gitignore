@@ -1,3 +1,5 @@
 .Rhistory
 .RData
 .Rproj.user
+/inst/html_files/test_self_contained.html
+/inst/html_files/test_not_contained.html

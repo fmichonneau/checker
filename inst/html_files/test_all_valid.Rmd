@@ -1,4 +1,0 @@
-# A document with only valid links and valid images
-
-- links of the form: "foo.com/bar/#something"
-- links of the form "/foo/bar" (relative to root of site)
