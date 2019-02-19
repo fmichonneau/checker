@@ -265,7 +265,7 @@ check_links <- function(dir = ".", recursive = TRUE,
 
 check_fragments_raw <- function(.dt, ...) {
 
-  purrr::pmap(.dt, function(full_path, fragment, data, ...) {
+  purrr::pmap(.dt, function(full_path, fragment, data, uri_type, ...) {
 
     if (!nzchar(fragment)) return(data)
 
@@ -279,7 +279,24 @@ check_fragments_raw <- function(.dt, ...) {
       )
     }
 
-    doc_xml <- xml2::read_html(full_path, encoding = "utf-8")
+    if (identical(uri_type, "local")) {
+      doc_xml <- xml2::read_html(full_path, encoding = "utf-8")
+    }
+
+    if (identical(uri_type, "external")) {
+      doc_xml <- try(xml::read_html(full_path, encoding = "utf-8"),
+        silent = TRUE)
+      if (inherits(doc_xml, "try-error")) {
+        return(
+          tibble::tibble(
+            valid = NA,
+            message = sprintf("Couldn't parse '%s': %s",
+              full_path, doc_xml)
+          )
+        )
+      }
+    }
+
 
     test_string <- sprintf(".//*[@name=\"%s\"] | .//*[@id=\"%s\"]",
                            fragment, fragment)
