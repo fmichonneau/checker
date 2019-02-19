@@ -35,7 +35,7 @@ extract_links_html  <- function(doc) {
     link = link_targets,
     link_text = link_text
   ) %>%
-    dplyr::distinct(link, link_text)
+    dplyr::distinct(.data$link, .data$link_text)
 
   res <- tbl_links %>%
     dplyr::bind_cols(
@@ -56,8 +56,8 @@ extract_links_html  <- function(doc) {
         TRUE ~ .data$link
       ),
       link = dplyr::case_when(
-        uri_type == "data" ~ substr(link, 1, 100),
-        TRUE ~ link
+        uri_type == "data" ~ substr(.data$link, 1, 100),
+        TRUE ~ .data$link
       )
     ) %>%
     ## remove empty links
@@ -195,6 +195,11 @@ extract_all_links <- function(dir, recursive, regexp, glob, ...) {
 ##'
 ##' @details Data URI and \code{mailto:} links are not checked.
 ##'
+##' The \code{by} argument controls how the summary of the results is being
+##' displayed. Using \code{page} is typically more convenient for small sites,
+##' while \code{resource} works better for larger websites that use templates
+##' are more likely to have mispecified resources across many pages.
+##'
 ##' @param dir The directory to look for documents
 ##' @param recursive Should sub-folders be searched for documents? (default
 ##'   `TRUE`).
@@ -204,6 +209,7 @@ extract_all_links <- function(dir, recursive, regexp, glob, ...) {
 ##'   (default) or also the valid links?
 ##' @param raise If set to `warning` or `error`, the function will raise a
 ##'   warning or an error if broken links are found.
+##' @param by How should the results of the checks be aggregated?
 ##' @param ... additional parameters to be passed to `grep` to match the file
 ##'   names to check.
 ##' @return a tibble with the name of the file that includes the link, the link,
@@ -284,7 +290,7 @@ check_fragments_raw <- function(.dt, ...) {
     }
 
     if (identical(uri_type, "external")) {
-      doc_xml <- try(xml::read_html(full_path, encoding = "utf-8"),
+      doc_xml <- try(xml2::read_html(full_path, encoding = "utf-8"),
         silent = TRUE)
       if (inherits(doc_xml, "try-error")) {
         return(
@@ -351,51 +357,55 @@ summary_check_links <- function(.dt, by) {
     return(.dt)
   }
 
-  page_output <- . %>%
-    purrr::walk(
-      function(.x) {
-        cat(
-          crayon::blue(
-            paste("  ", cli::symbol$bullet, " in `",
-              crayon::underline(unique(.x$file)), "`\n",
-              sep = "")))
-        purrr::pwalk(.x,
-          function(file, link, link_text, full_path, message, ...) {
-            if (nchar(link_text) > 0) {
-              txt <- paste0("      text: ", dQuote(link_text), "\n")
-            } else {
-              txt <- character(0)
-            }
-            cat(paste0(
-              "    - link: `", link, "`\n",
-              txt,
-              "      message: ", sQuote(message), "\n"))
-          })
-      }
-    )
+  page_output <- function(x) {
+    x %>%
+      purrr::walk(
+        function(.x) {
+          cat(
+            crayon::blue(
+              paste("  ", cli::symbol$bullet, " in `",
+                crayon::underline(unique(.x$file)), "`\n",
+                sep = "")))
+          purrr::pwalk(.x,
+            function(file, link, link_text, full_path, message, ...) {
+              if (nchar(link_text) > 0) {
+                txt <- paste0("      text: ", dQuote(link_text), "\n")
+              } else {
+                txt <- character(0)
+              }
+              cat(paste0(
+                "    - link: `", link, "`\n",
+                txt,
+                "      message: ", sQuote(message), "\n"))
+            })
+        }
+      )
+  }
 
-  resource_output <- . %>%
-    purrr::walk(
-      function(.x) {
-        .rsrc <- unique(.x$link)
-        .msg <- unique(.x$message)
-        cat(
-          crayon::blue(
-            paste0("  ", cli::symbol$bullet,
-              " Resource: `", crayon::underline(.rsrc), "`\n",
-              "    Message: ", sQuote(.msg), "\n")
-          ),
-          sep = ""
-        )
-        cat("    Found in:\n")
-        cat(
-          paste0(
-            "    - ", .x$file, "\n"
-          ),
-          sep = ""
-        )
-      }
-    )
+  resource_output <- function(x) {
+    x %>%
+      purrr::walk(
+        function(.x) {
+          .rsrc <- unique(.x$link)
+          .msg <- unique(.x$message)
+          cat(
+            crayon::blue(
+              paste0("  ", cli::symbol$bullet,
+                " Resource: `", crayon::underline(.rsrc), "`\n",
+                "    Message: ", sQuote(.msg), "\n")
+            ),
+            sep = ""
+          )
+          cat("    Found in:\n")
+          cat(
+            paste0(
+              "    - ", .x$file, "\n"
+            ),
+            sep = ""
+          )
+        }
+      )
+  }
 
   .dt_broken <- .dt %>%
     dplyr::filter(!.data$valid)
@@ -436,7 +446,7 @@ handle_raise <- function(out, raise) {
 }
 
 
-
+##' @importFrom stats na.omit
 get_n_broken <- function(dt) {
   sum(!na.omit(dt)$valid)
 }

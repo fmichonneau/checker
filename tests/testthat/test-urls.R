@@ -48,7 +48,7 @@ test_that("output has correct format", {
 
 test_that("404 are working", {
   links_404  <- links_self_contained[links_self_contained$link_text == "404", ]
-  expect_identical(nrow(links_404), 1gL)
+  expect_identical(nrow(links_404), 1L)
   expect_identical("HTTP status code: 404", unique(links_404$message))
 })
 
