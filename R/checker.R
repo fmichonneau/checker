@@ -44,16 +44,14 @@ extract_links_html  <- function(doc) {
     dplyr::mutate(
       uri_type = get_uri_type(.data$scheme, .data$server),
       full_path = dplyr::case_when(
-        ## within document urls
-        uri_type == "local" & substr(.data$link, 1, 1) == "#" ~ doc,
-        ## local files with path from root
-        uri_type == "local" & substr(.data$link, 1, 1) == "/" ~ as.character(fs::path(base_path, .data$path)),
-        ## local files with relative paths
-        uri_type == "local" ~ as.character(fs::path_abs(.data$path, start = base_path)),
-        ## generic scheme (e.g. '//somewebsite.com')
-        scheme == "" ~ paste0("https:", .data$link),
         ## data URI
         scheme == "data" ~ "<data URI>",
+        ## within document urls
+        scheme == "" & uri_type == "local" & substr(.data$link, 1, 1) == "#" ~ doc,
+        ## local files
+        scheme == "" & uri_type == "local" ~ normalizePath(file.path(base_path, .data$path), mustWork = FALSE),
+        ## generic scheme (e.g. '//somewebsite.com')
+        scheme == "" & nzchar(server) ~ paste0("https:", .data$link),
         ## other links
         TRUE ~ .data$link
       ),
