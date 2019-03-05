@@ -7,8 +7,9 @@
 Currently only HTML files are supported.}
 \usage{
 check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
-  glob = NULL, only_broken = TRUE, raise = c("ok", "warning",
-  "error"), by = c("page", "resource"), ...)
+  glob = NULL, only_with_issues = TRUE, show_full_path = FALSE,
+  raise = c("ok", "warning", "error"), by = c("page", "resource"),
+  show_summary = TRUE, ...)
 }
 \arguments{
 \item{dir}{The directory to look for documents}
@@ -20,13 +21,15 @@ check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
 
 \item{glob}{A wildcard pattern matching the names fo the files to check.}
 
-\item{only_broken}{Should the results include only the broken links
+\item{only_with_issues}{Should the results include only the broken links
 (default) or also the valid links?}
 
 \item{raise}{If set to `warning` or `error`, the function will raise a
 warning or an error if broken links are found.}
 
 \item{by}{How should the results of the checks be aggregated?}
+
+\item{show_summary}{Should a summary of the results be printed?}
 
 \item{...}{additional parameters to be passed to `grep` to match the file
 names to check.}
