@@ -5,7 +5,7 @@ output: html_document
 
 ## Generated image
 
-```{r self-contained-image}
+```{r self-contained-image, fig.cap="a ggplot2-generated graph"}
 library(tibble)
 library(ggplot2)
 
@@ -34,8 +34,9 @@ data_frame(
 * [broken](test_foo_bar_missing.html)
 * [local within valid](#protocol-tests)
 * [local within invalid](#foo-bar-section)
-* [local outside valid](test_anchors.html#test-anchor)
-* [local outside invalid](test_anchors.html#foo-bar-section)
+* [local outside valid link valid fragment](test_anchors.html#test-anchor)
+* [local outside valid link invalid fragment](test_anchors.html#foo-bar-section)
+* [local outside invalid link irrelevant fragment](test_foo_bar_missing.html#foo-bar-section)
 
 ## Images
 
