@@ -21,21 +21,44 @@ extract_links_html  <- function(doc) {
 
   base_path <- dirname(doc)
 
+  ## find all tags that have "href" or "src" attribute
   all_links <- xml2::read_html(doc) %>%
     xml2::xml_find_all(".//*[@href] | .//*[@src]")
 
+  ## extract the tag type
+  tag_type <- all_links %>%
+    xml2::xml_name() %>%
+    tolower()
+
+  ## extract the target for the "href" or "src" attribute
   link_targets <- all_links %>%
     xml2::xml_find_all(".//@href | .//@src") %>%
     xml2::xml_text()
 
+  ## extract the text (if applicable) that is marked up
   link_text <- all_links %>%
     xml2::xml_text()
 
+  ## extract the alt text (only applicable to images)
+  alt_text <- all_links %>%
+    purrr::map_chr(function(.x) {
+      .r <- xml2::xml_find_all(.x, ".//@alt") %>%
+        xml2::xml_text()
+
+      if (identical(length(.r), 0L))
+        return(NA_character_)
+
+      .r
+    })
+
+  ## assemble the result
   tbl_links <- tibble::tibble(
+    tag_type = tag_type,
     link = link_targets,
-    link_text = link_text
+    link_text = link_text,
+    alt_text = alt_text
   ) %>%
-    dplyr::distinct(.data$link, .data$link_text)
+    dplyr::distinct(.data$tag_type, .data$link, .data$link_text, .data$alt_text)
 
   res <- tbl_links %>%
     dplyr::bind_cols(
@@ -45,7 +68,7 @@ extract_links_html  <- function(doc) {
       uri_type = get_uri_type(.data$scheme, .data$server),
       full_path = dplyr::case_when(
         ## data URI
-        scheme == "data" ~ "<data URI>",
+        scheme == "data" ~ convert_data_uri(.data$link),
         ## within document urls
         scheme == "" & uri_type == "local" & substr(.data$link, 1, 1) == "#" ~ doc,
         ## local files
@@ -56,7 +79,7 @@ extract_links_html  <- function(doc) {
         TRUE ~ .data$link
       ),
       link = dplyr::case_when(
-        uri_type == "data" ~ substr(.data$link, 1, 100),
+        uri_type == "data" ~ convert_data_uri(.data$link),
         TRUE ~ .data$link
       )
     ) %>%
@@ -210,11 +233,12 @@ extract_all_links <- function(dir, recursive, regexp, glob, ...) {
 ##'   `TRUE`).
 ##' @param regexp A regular expression matching the names of the files to check.
 ##' @param glob A wildcard pattern matching the names fo the files to check.
-##' @param only_broken Should the results include only the broken links
+##' @param only_with_issues Should the results include only the broken links
 ##'   (default) or also the valid links?
 ##' @param raise If set to `warning` or `error`, the function will raise a
 ##'   warning or an error if broken links are found.
 ##' @param by How should the results of the checks be aggregated?
+##' @param show_summary Should a summary of the results be printed?
 ##' @param ... additional parameters to be passed to `grep` to match the file
 ##'   names to check.
 ##' @return a tibble with the name of the file that includes the link, the link,
@@ -227,9 +251,10 @@ extract_all_links <- function(dir, recursive, regexp, glob, ...) {
 ##' @export
 check_links <- function(dir = ".", recursive = TRUE,
                         regexp = "\\.html?$", glob = NULL,
-                        only_broken = TRUE,
+                        only_with_issues = TRUE,
                         raise = c("ok", "warning", "error"),
-                        by = c("page", "resource"), ...) {
+                        by = c("page", "resource"),
+                        show_summary = TRUE, ...) {
 
   raise <- match.arg(raise)
   by <- match.arg(by)
@@ -240,11 +265,14 @@ check_links <- function(dir = ".", recursive = TRUE,
   if (identical(nrow(links), 0L)) {
     return(tibble::tibble(
       file = character(0),
+      tag_type = character(0),
       link = character(0),
+      scheme = character(0),
       link_text = character(0),
       full_path = character(0),
       valid = logical(0),
-      message = character(0)
+      message = character(0),
+      alt_text = character(0)
     ))
   }
 
@@ -269,15 +297,29 @@ check_links <- function(dir = ".", recursive = TRUE,
 
   out <- out %>%
     check_fragments() %>%
-    dplyr::select(.data$file, .data$link, .data$link_text,
-      .data$full_path, .data$valid, .data$message)
+    dplyr::select(
+      .data$file,
+      .data$tag_type,
+      .data$link,
+      .data$scheme,
+      .data$link_text,
+      .data$full_path,
+      .data$valid,
+      .data$message,
+      .data$alt_text
+    )
 
-  if (only_broken) {
+  if (only_with_issues) {
     out <- out %>%
-      dplyr::filter(!.data$valid)
+      dplyr::filter(
+        has_issues_assertion(.data)
+      )
   }
 
-  summary_check_links(out, by)
+  if (show_summary) {
+    summary_check_images(out)
+    summary_check_links(out, by)
+  }
 
   handle_raise(out, raise)
 
@@ -440,7 +482,7 @@ summary_check_links <- function(.dt, by) {
 
   out %>%
     generic_msg(
-      msg = paste(n_broken, " broken links found:\n"),
+      msg = paste(n_broken, "broken links found:\n"),
       type = "error"
     ) %>%
     display
@@ -461,12 +503,3 @@ handle_raise <- function(out, raise) {
 
 }
 
-
-##' @importFrom stats na.omit
-get_n_broken <- function(dt) {
-  sum(!na.omit(dt)$valid)
-}
-
-get_n_valid <- function(dt) {
-  sum(na.omit(dt)$valid)
-}

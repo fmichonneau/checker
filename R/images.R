@@ -1,67 +1,18 @@
+process_alt_text <- function(.dt_img) {
 
-extract_img_html <- function(doc) {
-
-  doc <- normalizePath(doc)
-  base_path <- dirname(doc)
-
-  all_imgs <- xml2::read_html(doc) %>%
-    xml2::xml_find_all(".//img")
-
-  srcs <- purrr::map(all_imgs,
-                     ~ xml2::xml_find_all(., "@src") %>%
-                       xml2::xml_text()) %>%
-    purrr::map_chr(function(.x) {
-      if (length(.x) == 0L) return(NA_character_)
-      if (grepl("^data:", .x)) return("<data URI>")
-      .x
-    })
-
-  alt_txt <- purrr::map(all_imgs,
-                        ~ xml2::xml_find_all(., "@alt") %>%
-                          xml2::xml_text()
-                        ) %>%
-    purrr::map_chr(function(.x) {
-      if (length(.x) == 0L) return(NA_character_)
-      .x
-    })
-
-
-  tibble::tibble(
-    src = srcs,
-    alt = alt_txt
-  )
-
-}
-
-check_images <- function(dir = ".", recursive = TRUE,
-                         regexp = "\\.html?$", glob = NULL,
-                         show_full_path = FALSE,
-                         ...) {
-
-  images <- fs::dir_ls(
-    path = dir,
-    recursive = recursive,
-    regexp = regexp,
-    glob = glob,
-    ...
-  ) %>%
-    purrr::map_df(extract_img_html, .id = "file") %>%
-  make_path_rel(dir = dir, show_full_path = show_full_path)
-
-  images
-
-}
-
-summary_check_images <- function(.dt) {
-
-  if (nrow(.dt) == 0L || sum(is.na(.dt$alt)) == 0L) {
-    generic_msg(msg = "All images passed the checks.\n", type = "ok")
-    return(.dt)
+  if (identical(nrow(.dt_img), 0L)) {
+    return(NULL)
   }
 
-  .dt %>%
-    dplyr::filter(is.na(.data$alt)) %>%
-    split(.data$file) %>%
+  .dt_img <- .dt_img %>%
+    dplyr::filter(is.na(.data$alt_text))
+
+  if (identical(sum(is.na(.dt_img$alt_text)), 0L)) {
+    generic_msg(msg = "All images passed the alt-text checks.\n", type = "ok")
+    return(NULL)
+  }
+
+  split(.dt_img, .dt_img$file) %>%
     generic_msg(
       msg = "No 'alt' text for the following images:\n",
       type = "warning"
@@ -69,16 +20,63 @@ summary_check_images <- function(.dt) {
     purrr::walk(
       function(.x) {
         cat(
-          crayon::green(
+          crayon::blue(
             paste("  ", cli::symbol$bullet, " in `",
-                  crayon::underline(unique(.x$file)), "`\n",
-                  sep = "")))
+              crayon::underline(unique(.x$file)), "`\n",
+              sep = "")))
         purrr::pwalk(.x,
-                     function(file, src, alt, ...) {
-                       cat(paste("    ", src, "\n"))
-                     })
+          function(file, link, alt_text, ...) {
+            cat(paste("   ", link, "\n"))
+          })
       }
     )
+}
 
-  .dt
+
+process_http_img <- function(.dt_img) {
+
+  if (identical(nrow(.dt_img), 0L)) {
+    return(NULL)
+  }
+
+  .dt_img_http <- .dt_img[.dt_img$scheme == "http", ]
+
+  if (identical(nrow(.dt_img_http), 0L)) {
+    generic_msg(msg = "All images passed the HTTP checks.\n", type = "ok")
+    return(NULL)
+  }
+
+  split(.dt_img_http, .dt_img_http$file) %>%
+    generic_msg(
+      msg = "Using HTTP protocol for the following images. It's recommended to use HTTPS:\n",
+      type = "warning"
+    ) %>%
+    purrr::walk(
+      function(.x) {
+        cat(
+          crayon::blue(
+            paste("  ", cli::symbol$bullet, " in `",
+              crayon::underline(unique(.x$file)), "`\n",
+              sep = "")))
+        purrr::pwalk(.x,
+          function(file, link, alt_text, ...) {
+            cat(paste("   ", link, "\n"))
+          })
+      }
+    )
+}
+
+
+summary_check_images <- function(.dt) {
+
+  .dt_img <- .dt[.dt$tag_type == "img", ]
+
+  if (identical(nrow(.dt_img), 0L))
+    return(invisible(.dt))
+
+  process_alt_text(.dt_img)
+
+  process_http_img(.dt_img)
+
+  invisible(.dt)
 }
