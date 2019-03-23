@@ -1,5 +1,5 @@
 build_html_page <- function(o, self_contained = TRUE) {
-  f <- system.file("html_files", "test_urls_img.Rmd", package = "checker")
+  f <- system.file("rmd_files", "test_urls_img.Rmd", package = "checker")
   rmarkdown::render(
     f,
     output_file = o,
@@ -30,7 +30,7 @@ out_self_contained <- build_html_page(
   "test_self_contained.html",
   self_contained = TRUE)
 
-links_self_contained <- check_links(
+all_links_self_contained <- check_links(
   dir = dirname(out_self_contained),
   regexp = "test_self_contained.html",
   only_with_issues = FALSE,
@@ -43,53 +43,75 @@ with_issues_self_contained <- check_links(
   show_summary = FALSE)
 
 test_that("output has correct format for self-contained", {
-  expect_true(inherits(links_self_contained, "tbl_df"))
+  expect_true(inherits(all_links_self_contained, "tbl_df"))
   expect_true(inherits(with_issues_self_contained, "tbl_df"))
-  expect_identical(lapply(links_self_contained, class), expected_cols)
+  expect_identical(lapply(all_links_self_contained, class), expected_cols)
   expect_identical(lapply(with_issues_self_contained, class), expected_cols)
-  expect_identical(nrow(links_self_contained), 22L)
+  expect_identical(nrow(all_links_self_contained), 24L)
   expect_identical(nrow(with_issues_self_contained), get_n_issues(with_issues_self_contained))
   expect_true(nrow(with_issues_self_contained) >= 4)
 })
 
 test_that("404 are working", {
-    links_404  <- links_self_contained[links_self_contained$link_text == "404", ]
+    links_404  <- all_links_self_contained[all_links_self_contained$link_text == "404", ]
     expect_identical(nrow(links_404), 1L)
     expect_identical("HTTP status code: 404", unique(links_404$message))
   })
 
 test_that("internal links are working as expected", {
   expect_false("valid" %in% with_issues_self_contained$link_text)
-  expect_true("valid" %in% links_self_contained$link_text)
+  expect_true("valid" %in% all_links_self_contained$link_text)
   expect_true("broken" %in% with_issues_self_contained$link_text)
-  expect_true("broken" %in% links_self_contained$link_text)
+  expect_true("broken" %in% all_links_self_contained$link_text)
 
   sub_with_issues <- with_issues_self_contained[with_issues_self_contained$link_text == "broken", ]
   expect_identical(nrow(sub_with_issues), 1L)
   expect_match(sub_with_issues$message, "File referenced by URL doesn't exist")
 
-  sub_links <- links_self_contained[links_self_contained$link_text == "broken", ]
+  sub_links <- all_links_self_contained[all_links_self_contained$link_text == "broken", ]
   expect_identical(nrow(sub_links), 1L)
   expect_match(sub_links$message, "File referenced by URL doesn't exist")
 
 
   expect_false("local within valid" %in% with_issues_self_contained$link_text)
-  expect_true("local within valid" %in% links_self_contained$link_text)
+  expect_true("local within valid" %in% all_links_self_contained$link_text)
 
   expect_false("local outside valid link valid fragment" %in% with_issues_self_contained$link_text)
-  expect_true("local outside valid link valid fragment" %in% links_self_contained$link_text)
+  expect_true("local outside valid link valid fragment" %in% all_links_self_contained$link_text)
 
   expect_true("local outside valid link invalid fragment" %in% with_issues_self_contained$link_text)
-  expect_true("local outside valid link invalid fragment" %in% links_self_contained$link_text)
+  expect_true("local outside valid link invalid fragment" %in% all_links_self_contained$link_text)
 })
 
 
 test_that("external links with fragments", {
-  stop()
+
+  ## Valid links
+  sub_links_valid <- all_links_self_contained[all_links_self_contained$link_text == "valid external with valid fragment", ]
+  sub_with_issues_valid <- with_issues_self_contained[with_issues_self_contained$link_text == "valid external with valid fragment", ]
+
+  expect_identical(nrow(sub_links_valid), 1L)
+  expect_identical(nrow(sub_with_issues_valid), 0L)
+
+  ## Invalid links
+  sub_links_invalid <- all_links_self_contained[all_links_self_contained$link_text == "valid external with invalid fragment", ]
+  sub_with_issues_invalid <- with_issues_self_contained[with_issues_self_contained$link_text == "valid external with invalid fragment", ]
+
+  expect_identical(nrow(sub_links_invalid), 1L)
+  expect_identical(nrow(sub_with_issues_invalid), 1L)
+
+
 })
 
 test_that("local links with fragments for file that doesn't exist", {
-  stop()
+  sub_with_issues_fragment <- with_issues_self_contained[with_issues_self_contained$link_text == "local outside invalid link irrelevant fragment", ]
+  expect_identical(nrow(sub_with_issues_fragment), 1L)
+  expect_match(sub_with_issues_fragment$message, "Local URL .+ doesn't exist")
+
+  sub_links_fragment <- all_links_self_contained[all_links_self_contained$link_text == "local outside invalid link irrelevant fragment", ]
+  expect_identical(nrow(sub_links_fragment), 1L)
+  expect_match(sub_links_fragment$message, "Local URL .+ doesn't exist")
+
 })
 
 
@@ -98,13 +120,13 @@ test_that("local links with fragments for file that doesn't exist", {
 context("self-contained dealing with mailto:")
 test_that("mailto: only appears when `only_with_issues=FALSE`", {
   expect_identical(
-    length(grep("^mailto:", links_self_contained$full_path)), 1L)
+    length(grep("^mailto:", all_links_self_contained$full_path)), 1L)
   expect_identical(
     length(grep("^mailto:", with_issues_self_contained$full_path)), 0L)
 })
 
 test_that("mailto: has NA for valid and no message", {
-  sub_mailto <- links_self_contained[grepl("^mailto", links_self_contained$full_path), ]
+  sub_mailto <- all_links_self_contained[grepl("^mailto", all_links_self_contained$full_path), ]
 
   expect_identical(sub_mailto$valid, NA)
   expect_identical(sub_mailto$message, "")
@@ -114,25 +136,18 @@ test_that("mailto: has NA for valid and no message", {
 ### data URI -------------------------------------------------------------------
 
 context("self-contained data URI")
-test_that("data URI has NA for valid", {
-  sub_datauri <- links_self_contained[grepl("^data:", links_self_contained$full_path), ]
-
-  expect_true(all(is.na(sub_datauri$valid)))
-  expect_true(all(sub_datauri$message == ""))
-
-})
-
+## not sure what we can test for here...
 
 ### valid links ----------------------------------------------------------------
 
 context("self-contained valid links")
 
 test_that("check for status code of valid links + message for fragments", {
-  sub_valid <- links_self_contained[
-    links_self_contained$valid & !is.na(links_self_contained$valid), ]
+  sub_valid <- all_links_self_contained[
+    all_links_self_contained$valid & !is.na(all_links_self_contained$valid), ]
   expect_true(length(grep("HTTP status code: 200", sub_valid$message)) > 1)
   expect_true(length(grep("Fragment .+ checked and found", sub_valid$message)) > 1)
-  expect_true(length(grep("File exists", sub_valid$message)) > 1)
+  expect_true(length(grep("File exists", sub_valid$message)) > 0)
 })
 
 
@@ -146,7 +161,7 @@ out_not_contained <- build_html_page(
   "test_not_contained.html",
   self_contained = FALSE)
 
-links_not_contained <- check_links(
+all_links_not_contained <- check_links(
   dir = dirname(out_not_contained),
   regexp = "test_not_contained.html",
   only_with_issues = FALSE,
@@ -159,62 +174,76 @@ with_issues_not_contained <- check_links(
   show_summary = FALSE)
 
 test_that("output has correct format for not contained", {
-  expect_true(inherits(links_not_contained, "tbl_df"))
+  expect_true(inherits(all_links_not_contained, "tbl_df"))
   expect_true(inherits(with_issues_not_contained, "tbl_df"))
-  expect_identical(lapply(links_not_contained, class), expected_cols)
+  expect_identical(lapply(all_links_not_contained, class), expected_cols)
   expect_identical(lapply(with_issues_not_contained, class), expected_cols)
-  expect_identical(nrow(links_not_contained), 29L)
+  expect_identical(nrow(all_links_not_contained), 31L)
   expect_identical(nrow(with_issues_not_contained), get_n_issues(with_issues_not_contained))
   expect_true(nrow(with_issues_not_contained) >= 4)
 })
 
 test_that("404 are working", {
-  links_404  <- links_not_contained[links_not_contained$link_text == "404", ]
+  links_404  <- all_links_not_contained[all_links_not_contained$link_text == "404", ]
   expect_identical(nrow(links_404), 1L)
   expect_identical("HTTP status code: 404", unique(links_404$message))
 })
 
 test_that("internal links are working as expected", {
   expect_false("valid" %in% with_issues_not_contained$link_text)
-  expect_true("valid" %in% links_not_contained$link_text)
+  expect_true("valid" %in% all_links_not_contained$link_text)
   expect_true("broken" %in% with_issues_not_contained$link_text)
-  expect_true("broken" %in% links_not_contained$link_text)
+  expect_true("broken" %in% all_links_not_contained$link_text)
 
   sub_with_issues <- with_issues_not_contained[with_issues_not_contained$link_text == "broken", ]
   expect_identical(nrow(sub_with_issues), 1L)
   expect_match(sub_with_issues$message, "File referenced by URL doesn't exist")
 
-  sub_links <- links_not_contained[links_not_contained$link_text == "broken", ]
+  sub_links <- all_links_not_contained[all_links_not_contained$link_text == "broken", ]
   expect_identical(nrow(sub_links), 1L)
   expect_match(sub_links$message, "File referenced by URL doesn't exist")
 
-  sub_with_issues_fragment <- with_issues_not_contained[with_issues_not_contained$link_text == "local outside invalid link irrelevant fragment", ]
-  expect_identical(nrow(sub_with_issues_fragment), 1L)
-  expect_match(sub_with_issues_fragment$message, "Local URL .+ doesn't exist")
-
-  sub_links_fragment <- links_not_contained[links_not_contained$link_text == "local outside invalid link irrelevant fragment", ]
-  expect_identical(nrow(sub_links_fragment), 1L)
-  expect_match(sub_links_fragment$message, "Local URL .+ doesn't exist")
 
   expect_false("local within valid" %in% with_issues_not_contained$link_text)
-  expect_true("local within valid" %in% links_not_contained$link_text)
+  expect_true("local within valid" %in% all_links_not_contained$link_text)
 
   expect_false("local outside valid link valid fragment" %in%
                  with_issues_not_contained$link_text)
   expect_true("local outside valid link valid fragment" %in%
-                links_not_contained$link_text)
+                all_links_not_contained$link_text)
 
   expect_true("local outside valid link invalid fragment" %in% with_issues_not_contained$link_text)
-  expect_true("local outside valid link invalid fragment" %in% links_not_contained$link_text)
+  expect_true("local outside valid link invalid fragment" %in% all_links_not_contained$link_text)
 
 })
 
 test_that("external links with fragments", {
-  stop()
+
+  ## Valid links
+  sub_links_valid <- all_links_not_contained[all_links_not_contained$link_text == "valid external with valid fragment", ]
+  sub_with_issues_valid <- with_issues_not_contained[with_issues_not_contained$link_text == "valid external with valid fragment", ]
+
+  expect_identical(nrow(sub_links_valid), 1L)
+  expect_identical(nrow(sub_with_issues_valid), 0L)
+
+  ## Invalid links
+  sub_links_invalid <- all_links_not_contained[all_links_not_contained$link_text == "valid external with invalid fragment", ]
+  sub_with_issues_invalid <- with_issues_not_contained[with_issues_not_contained$link_text == "valid external with invalid fragment", ]
+
+  expect_identical(nrow(sub_links_invalid), 1L)
+  expect_identical(nrow(sub_with_issues_invalid), 1L)
+
 })
 
 test_that("local links with fragments for file that doesn't exist", {
-  stop()
+  sub_with_issues_fragment <- with_issues_not_contained[with_issues_not_contained$link_text == "local outside invalid link irrelevant fragment", ]
+  expect_identical(nrow(sub_with_issues_fragment), 1L)
+  expect_match(sub_with_issues_fragment$message, "Local URL .+ doesn't exist")
+
+  sub_links_fragment <- all_links_not_contained[all_links_not_contained$link_text == "local outside invalid link irrelevant fragment", ]
+  expect_identical(nrow(sub_links_fragment), 1L)
+  expect_match(sub_links_fragment$message, "Local URL .+ doesn't exist")
+
 })
 
 ### mailto: --------------------------------------------------------------------
@@ -222,13 +251,13 @@ test_that("local links with fragments for file that doesn't exist", {
 context("not contained dealing with mailto:")
 test_that("mailto: only appears when `only_with_issues=FALSE`", {
   expect_identical(
-    length(grep("^mailto:", links_not_contained$full_path)), 1L)
+    length(grep("^mailto:", all_links_not_contained$full_path)), 1L)
   expect_identical(
     length(grep("^mailto:", with_issues_not_contained$full_path)), 0L)
 })
 
 test_that("mailto: has NA for valid and no message", {
-  sub_mailto <- links_not_contained[grepl("^mailto", links_not_contained$full_path), ]
+  sub_mailto <- all_links_not_contained[grepl("^mailto", all_links_not_contained$full_path), ]
 
   expect_identical(sub_mailto$valid, NA)
   expect_identical(sub_mailto$message, "")
@@ -240,7 +269,7 @@ test_that("mailto: has NA for valid and no message", {
 context("not contained data URI")
 test_that("data URI only appears when `only_with_issues=FALSE`", {
   expect_identical(
-    length(grep("^data:", links_not_contained$full_path)), 0L
+    length(grep("^data:", all_links_not_contained$full_path)), 0L
   )
   expect_identical(
     length(grep("^data:", with_issues_not_contained$full_path)), 0L
@@ -248,7 +277,7 @@ test_that("data URI only appears when `only_with_issues=FALSE`", {
 })
 
 test_that("data URI has NA for valid", {
-  sub_datauri <- links_not_contained[grepl("^data:", links_not_contained$full_path), ]
+  sub_datauri <- all_links_not_contained[grepl("^data:", all_links_not_contained$full_path), ]
 
   expect_true(all(is.na(sub_datauri$valid)))
   expect_true(all(sub_datauri$message == ""))
@@ -261,11 +290,11 @@ test_that("data URI has NA for valid", {
 context("not contained valid links")
 
 test_that("check for status code of valid links + message for fragments", {
-  sub_valid <- links_not_contained[
-    links_not_contained$valid & !is.na(links_not_contained$valid), ]
+  sub_valid <- all_links_not_contained[
+    all_links_not_contained$valid & !is.na(all_links_not_contained$valid), ]
   expect_true(length(grep("HTTP status code: 200", sub_valid$message)) > 1)
   expect_true(length(grep("Fragment .+ checked and found", sub_valid$message)) > 1)
-  expect_true(length(grep("File exists", sub_valid$message)) > 1)
+  expect_true(length(grep("File exists", sub_valid$message)) > 0)
 })
 
 ###### -------------------------------------------------------------------------
@@ -277,25 +306,25 @@ context("page with no links")
 no_links_file <- system.file("html_files", "test_no_links.html",
   package = "checker")
 
-links_no_links <- check_links(
-  dir = dirname(out_self_contained),
-  regexp = "test_no_links.html$",
+all_links_no_links <- check_links(
+  dir = dirname(no_links_file),
+  regexp = "test_no_links.html",
   only_with_issues = FALSE,
   show_summary = FALSE
 )
 
 with_issues_no_links <- check_links(
-  dir = dirname(out_self_contained),
-  regexp = "test_no_links.html$",
+  dir = dirname(no_links_file),
+  regexp = "test_no_links.html",
   only_with_issues = TRUE,
   show_summary = FALSE
 )
 
 test_that("data structure of object return when there is no links is OK", {
-  expect_identical(links_no_links, with_issues_no_links)
-  expect_identical(lapply(links_no_links, class), expected_cols)
+  expect_identical(all_links_no_links, with_issues_no_links)
+  expect_identical(lapply(all_links_no_links, class), expected_cols)
   expect_identical(lapply(with_issues_no_links, class), expected_cols)
-  expect_identical(nrow(links_no_links), 0L)
+  expect_identical(nrow(all_links_no_links), 0L)
   expect_identical(nrow(with_issues_no_links), 0L)
 })
 
@@ -308,7 +337,7 @@ context("page with no broken links")
 no_broken_file <- system.file("html_files", "test_all_valid.html",
   package = "checker")
 
-links_no_broken <- check_links(
+all_links_no_broken <- check_links(
   dir = dirname(no_broken_file),
   regexp = no_broken_file,
   only_with_issues = FALSE,
@@ -324,9 +353,9 @@ broken_no_broken <- check_links(
 
 test_that("valid values are all TRUE", {
   expect_identical(
-    nrow(links_no_broken), 4L
+    nrow(all_links_no_broken), 4L
   )
-  expect_true(all(links_no_broken$valid))
+  expect_true(all(all_links_no_broken$valid))
 })
 
 test_that("empty tibble when there are no broken links", {
