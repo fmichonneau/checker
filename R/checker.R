@@ -216,6 +216,9 @@ no_check <- function(full_path, ...) {
   )
 }
 
+unknown_protocol <- function(...) {
+  stop("Unknown protocol, please report the issue: https://github.com/fmichonneau/checker/issues/new")
+}
 
 extract_all_links <- function(dir, recursive, regexp, glob, ...) {
 
@@ -303,9 +306,9 @@ check_links <- function(dir = ".", recursive = TRUE,
       fn = dplyr::case_when(
         uri_type == "local" ~ "check_local_file",
         uri_type == "external" ~ "check_url",
-        TRUE ~ "stop"
         uri_type == "data" ~ "check_data",
         uri_type %in% c("mailto", "news") ~ "no_check",
+        TRUE ~ "unknown_protocol"
       )) %>%
     dplyr::mutate(
       res = purrr::invoke_map(.data$fn, .data$data)
