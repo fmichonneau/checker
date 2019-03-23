@@ -65,6 +65,12 @@ extract_links_html  <- function(doc) {
       xml2::url_parse(tbl_links$link)
     ) %>%
     dplyr::mutate(
+      ## do a second pass on scheme, as broken self-contained images don't get
+      ## parsed properly
+      scheme = dplyr::case_when(
+        !nzchar(.data$scheme) & grepl("^data\\:", .data$link) ~ "data",
+        TRUE ~ .data$scheme
+      ),
       uri_type = get_uri_type(.data$scheme, .data$server),
       full_path = dplyr::case_when(
         ## data URI
@@ -190,6 +196,18 @@ check_url <- function(full_path, ...) {
 
 }
 
+check_data <- function(full_path, ...) {
+  tibble::tibble(
+    url = full_path,
+    valid = !grepl("^data:text/html", full_path),
+    message = dplyr::if_else(
+      .data$valid,
+      "",
+      "Contained data represented as text, usually indicates incorrect path."
+    )
+  )
+}
+
 no_check <- function(full_path, ...) {
   tibble::tibble(
     url = full_path,
@@ -285,8 +303,9 @@ check_links <- function(dir = ".", recursive = TRUE,
       fn = dplyr::case_when(
         uri_type == "local" ~ "check_local_file",
         uri_type == "external" ~ "check_url",
-        uri_type %in% c("mailto", "data") ~ "no_check",
         TRUE ~ "stop"
+        uri_type == "data" ~ "check_data",
+        uri_type %in% c("mailto", "news") ~ "no_check",
       )) %>%
     dplyr::mutate(
       res = purrr::invoke_map(.data$fn, .data$data)
