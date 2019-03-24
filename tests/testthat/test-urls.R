@@ -1,5 +1,5 @@
 build_html_page <- function(o, self_contained = TRUE) {
-  f <- system.file("rmd_files", "test_urls_img.Rmd", package = "checker")
+  f <- file.path("rmd_files", "test_urls_img.Rmd")
   rmarkdown::render(
     f,
     output_file = o,
@@ -303,8 +303,7 @@ test_that("check for status code of valid links + message for fragments", {
 
 context("page with no links")
 
-no_links_file <- system.file("html_files", "test_no_links.html",
-  package = "checker")
+no_links_file <- file.path("html_files", "test_no_links.html")
 
 all_links_no_links <- check_links(
   dir = dirname(no_links_file),
@@ -334,8 +333,7 @@ test_that("data structure of object return when there is no links is OK", {
 
 context("page with no broken links")
 
-no_broken_file <- system.file("html_files", "test_all_valid.html",
-  package = "checker")
+no_broken_file <- file.path("html_files", "test_all_valid.html")
 
 all_links_no_broken <- check_links(
   dir = dirname(no_broken_file),

@@ -1,6 +1,6 @@
 .Rhistory
 .RData
 .Rproj.user
-/inst/rmd_files/test_self_contained.html
-/inst/rmd_files/test_not_contained.html
-/inst/rmd_files/test*
+/tests/testthat/rmd_files/test_self_contained.html
+/tests/testthat/rmd_files/test_not_contained.html
+/tests/testthat/rmd_files/test*
