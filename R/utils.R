@@ -24,7 +24,7 @@ get_n_valid <- function(.dt) {
 
 
 convert_data_uri <- function(data_uri) {
-  paste0(substr(data_uri, 1, 50), "...")
+  paste0(substr(data_uri, 1, 100), "...")
 }
 
 make_path_rel <- function(.data, dir, show_full_path) {
