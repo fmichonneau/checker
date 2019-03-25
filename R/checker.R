@@ -1,16 +1,6 @@
 ##' @importFrom dplyr %>%
 ##' @importFrom rlang .data
 
-##' @importFrom dplyr case_when
-get_uri_type <- function(scheme, server, ...) {
-  dplyr::case_when(
-    scheme == "data" ~ "data",
-    scheme == "mailto" ~ "mailto",
-    scheme == "" & server == "" ~ "local",
-    TRUE ~ "external"
-  )
-}
-
 
 ##' @importFrom xml2 read_html xml_find_all xml_text url_parse
 ##' @importFrom tibble tibble

@@ -22,11 +22,11 @@ get_n_valid <- function(.dt) {
 }
 
 
-
 convert_data_uri <- function(data_uri) {
   paste0(substr(data_uri, 1, 100), "...")
 }
 
+##' @importFrom dplyr mutate
 make_path_rel <- function(.data, dir, show_full_path) {
   if (show_full_path)
     return(.data)
@@ -37,4 +37,15 @@ make_path_rel <- function(.data, dir, show_full_path) {
     dplyr::mutate(
       file = gsub(dir, ".", .data$file)
     )
+}
+
+
+##' @importFrom dplyr case_when
+get_uri_type <- function(scheme, server, ...) {
+  dplyr::case_when(
+    scheme == "data" ~ "data",
+    scheme == "mailto" ~ "mailto",
+    scheme == "" & server == "" ~ "local",
+    TRUE ~ "external"
+  )
 }
