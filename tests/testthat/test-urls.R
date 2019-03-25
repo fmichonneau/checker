@@ -623,7 +623,8 @@ test_that("output with broken links (by resource)", {
       regexp = quick_broken_file,
       only_with_issues = FALSE,
       show_summary = TRUE,
-      raise = "ok"
+      raise = "ok",
+      by = "resource"
     ),
     "Resource: `no_file.html`"
   )
@@ -634,7 +635,8 @@ test_that("output with broken links (by resource)", {
       regexp = quick_broken_file,
       only_with_issues = TRUE,
       show_summary = TRUE,
-      raise = "ok"),
+      raise = "ok",
+      by = "resource"),
     "Resource: `no_file.html`"
   )
 })
