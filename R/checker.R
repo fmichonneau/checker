@@ -16,7 +16,7 @@
 ##' @param recursive Should sub-folders be searched for documents? (default
 ##'   `TRUE`).
 ##' @param regexp A regular expression matching the names of the files to check.
-##' @param glob A wildcard pattern matching the names fo the files to check.
+##' @param glob A wildcard pattern matching the names of the files to check.
 ##' @param only_with_issues Should the results include only the broken links
 ##'   (default) or also the valid links?
 ##' @param raise If set to `warning` or `error`, the function will raise a
