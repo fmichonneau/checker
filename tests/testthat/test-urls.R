@@ -569,7 +569,7 @@ test_that("check raise level = error with broken links", {
 context("check different types of output")
 
 test_that("output with no broken links", {
-  expect_ouput(
+  expect_output(
     all_links_no_broken <- check_links(
       dir = dirname(no_broken_file),
       regexp = no_broken_file,
