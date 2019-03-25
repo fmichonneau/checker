@@ -17,6 +17,9 @@
 ##'   `TRUE`).
 ##' @param regexp A regular expression matching the names of the files to check.
 ##' @param glob A wildcard pattern matching the names of the files to check.
+##' @param ignore_pattern A vector of regular expressions matching the path of
+##'   the links to ignore in the files (see Details).
+##' @param ignore_tag A vector of HTML tags to ignore.
 ##' @param only_with_issues Should the results include only the broken links
 ##'   (default) or also the valid links?
 ##' @param raise If set to `warning` or `error`, the function will raise a
@@ -25,6 +28,15 @@
 ##' @param show_summary Should a summary of the results be printed?
 ##' @param ... additional parameters to be passed to `grep` to match the file
 ##'   names to check.
+##' @details
+##'   ## Ignore patterns
+##'
+##'   If more than one regular expressions is provided to `ignore_pattern`, they
+##'   will be evaluated in succession: thus, the order in which you provide them
+##'   may matter. For local files, matching of the regular expressions is done
+##'   on the fully expanded link paths. Make sure your regular expression don't
+##'   inadvertently match patterns higher up in your tree files to the risk of
+##'   excluding all files from being checked.
 ##' @return a tibble with the name of the file that includes the link, the link,
 ##'   the expanded full path (useful for local/relative links), whether the link
 ##'   is valid, and possibly the message/HTTP code returned by the server.
@@ -35,6 +47,8 @@
 ##' @export
 check_links <- function(dir = ".", recursive = TRUE,
                         regexp = "\\.html?$", glob = NULL,
+                        ignore_pattern = NULL,
+                        ignore_tag = NULL,
                         only_with_issues = TRUE,
                         raise = c("ok", "warning", "error"),
                         by = c("page", "resource"),
@@ -44,20 +58,12 @@ check_links <- function(dir = ".", recursive = TRUE,
   by <- match.arg(by)
 
   links <- extract_all_links(dir = dir, recursive = recursive,
-    regexp = regexp, glob = glob, ...)
+    regexp = regexp, glob = glob, ...) %>%
+    filter_ignore_pattern(ignore_pattern) %>%
+    filter_ignore_tag(ignore_tag)
 
   if (identical(nrow(links), 0L)) {
-    return(tibble::tibble(
-      file = character(0),
-      tag_type = character(0),
-      link = character(0),
-      scheme = character(0),
-      link_text = character(0),
-      full_path = character(0),
-      valid = logical(0),
-      message = character(0),
-      alt_text = character(0)
-    ))
+    return(empty_check_links())
   }
 
   uniq_links <- dplyr::distinct(links, .data$uri_type, .data$full_path)
@@ -112,4 +118,16 @@ check_links <- function(dir = ".", recursive = TRUE,
 
 }
 
-
+empty_check_links <- function() {
+  tibble::tibble(
+    file = character(0),
+    tag_type = character(0),
+    link = character(0),
+    scheme = character(0),
+    link_text = character(0),
+    full_path = character(0),
+    valid = logical(0),
+    message = character(0),
+    alt_text = character(0)
+  )
+}

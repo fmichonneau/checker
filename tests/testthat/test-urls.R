@@ -703,3 +703,91 @@ test_that("output with broken links (by resource)", {
     "Resource: `no_file.html`"
   )
 })
+
+#### ---------------------------------------------------------------------------
+#### Test for ignores
+#### ---------------------------------------------------------------------------
+
+ign_pattern_1 <- check_links(dirname(out_self_contained),
+  regexp = "test_self_contained.html",
+  ignore_pattern = c("^mailto:"),
+  only_with_issues = FALSE, show_summary = FALSE)
+
+ign_pattern_2 <- check_links(dirname(out_self_contained),
+  regexp = "test_self_contained.html",
+  ignore_pattern = c("^mailto:", "^data"),
+  only_with_issues = FALSE, show_summary = FALSE)
+
+ign_pattern_foo <- check_links(dirname(out_self_contained),
+  regexp = "test_self_contained.html",
+  ignore_pattern = c("semi_random_string_not_found_in_file"),
+  only_with_issues = FALSE, show_summary = FALSE)
+
+ign_tag_1 <- check_links(dirname(out_self_contained),
+  regexp = "test_self_contained.html",
+  ignore_tag = "a",
+  only_with_issues = FALSE, show_summary = FALSE)
+
+ign_tag_2 <- check_links(dirname(out_self_contained),
+  regexp = "test_self_contained.html",
+  ignore_tag = c("a", "script"),
+  only_with_issues = FALSE, show_summary = FALSE)
+
+ign_tag_foo <- check_links(dirname(out_self_contained),
+  regexp = "test_self_contained.html",
+  ignore_tag = "foo",
+  only_with_issues = FALSE, show_summary = FALSE)
+
+ign_pat_tag <- check_links(dirname(out_self_contained),
+  regexp = "test_self_contained.html",
+  ignore_pattern = "^data:",
+  ignore_tag = c("a", "script"),
+  only_with_issues = FALSE, show_summary = FALSE)
+
+
+context("test for ignore_pattern")
+
+test_that("1 value for ignore_pattern", {
+  expect_true(any(grepl("^mailto:", all_links_self_contained$full_path)))
+  expect_false(any(grepl("^mailto:", ign_pattern_1$full_path)))
+})
+
+test_that("2 values for ignore_pattern", {
+  expect_true(any(grepl("^mailto:", all_links_self_contained$full_path)) &
+                any(grepl("^data:", all_links_self_contained$full_path)))
+  expect_false(any(grepl("^mailto:", ign_pattern_2$full_path)) &
+                 any(grepl("^data:", ign_pattern_2$full_path)))
+
+})
+
+test_that("no effect for non-matching pattern filter", {
+  expect_identical(
+    ign_pattern_foo, all_links_self_contained
+  )
+})
+
+context("test for ignore_tag")
+
+test_that("1 value for ignore tag", {
+  expect_true("a" %in% all_links_self_contained$tag_type)
+  expect_false("a" %in% ign_tag_1$tag_type)
+})
+
+test_that("2 values for ignore tag", {
+  expect_true("a" %in% all_links_self_contained$tag_type &
+                "script" %in% all_links_self_contained$tag_type)
+  expect_false("a" %in% ign_tag_1$tag_type &
+                 "script" %in% ign_tag_1$tag_type)
+})
+
+test_that("no effect for non-matching tag filter", {
+  expect_identical(
+    ign_tag_foo, all_links_self_contained
+  )
+})
+
+context("test for ignore_tag and ignore_pattern combined")
+
+test_that("combined filter work", {
+  expect_identical(nrow(ign_pat_tag), 0L)
+})
