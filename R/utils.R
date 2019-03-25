@@ -49,3 +49,16 @@ get_uri_type <- function(scheme, server, ...) {
     TRUE ~ "external"
   )
 }
+
+handle_raise <- function(out, raise) {
+
+  msg <- "Broken links found."
+
+  if (get_n_broken(out) > 0) {
+    switch(raise,
+      ok = NULL,
+      warning = warning(msg, call. = FALSE),
+      error = stop(msg, call. = FALSE))
+  }
+
+}
