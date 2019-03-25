@@ -7,8 +7,9 @@
 Currently only HTML files are supported.}
 \usage{
 check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
-  glob = NULL, only_with_issues = TRUE, raise = c("ok", "warning",
-  "error"), by = c("page", "resource"), show_summary = TRUE, ...)
+  glob = NULL, ignore_pattern = NULL, ignore_tag = NULL,
+  only_with_issues = TRUE, raise = c("ok", "warning", "error"),
+  by = c("page", "resource"), show_summary = TRUE, ...)
 }
 \arguments{
 \item{dir}{The directory to look for documents}
@@ -18,7 +19,12 @@ check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
 
 \item{regexp}{A regular expression matching the names of the files to check.}
 
-\item{glob}{A wildcard pattern matching the names fo the files to check.}
+\item{glob}{A wildcard pattern matching the names of the files to check.}
+
+\item{ignore_pattern}{A vector of regular expressions matching the path of
+the links to ignore in the files (see Details).}
+
+\item{ignore_tag}{A vector of HTML tags to ignore.}
 
 \item{only_with_issues}{Should the results include only the broken links
 (default) or also the valid links?}
@@ -50,4 +56,13 @@ The \code{by} argument controls how the summary of the results is being
 displayed. Using \code{page} is typically more convenient for small sites,
 while \code{resource} works better for larger websites that use templates
 are more likely to have mispecified resources across many pages.
+
+## Ignore patterns
+
+  If more than one regular expressions is provided to `ignore_pattern`, they
+  will be evaluated in succession: thus, the order in which you provide them
+  may matter. For local files, matching of the regular expressions is done
+  on the fully expanded link paths. Make sure your regular expression don't
+  inadvertently match patterns higher up in your tree files to the risk of
+  excluding all files from being checked.
 }
