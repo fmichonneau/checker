@@ -342,7 +342,7 @@ all_links_no_broken <- check_links(
   show_summary = FALSE
 )
 
-broken_no_broken <- check_links(
+with_issues_no_broken <- check_links(
   dir = dirname(no_broken_file),
   regexp = no_broken_file,
   only_with_issues = TRUE,
@@ -358,7 +358,7 @@ test_that("valid values are all TRUE", {
 
 test_that("empty tibble when there are no broken links", {
   expect_identical(
-    nrow(broken_no_broken), 0L
+    nrow(with_issues_no_broken), 0L
   )
 })
 
@@ -419,6 +419,147 @@ test_that("regexp and glob give the same result", {
 ##### --------------------------------------------------------------------------
 ##### Check raise levels
 ##### --------------------------------------------------------------------------
+
+quick_broken_file <- file.path("html_files", "quick_broken.html")
+
+context("check raise level = OK")
+
+test_that("check raise level = OK with no broken links", {
+  expect_silent(
+    all_links_no_broken <- check_links(
+      dir = dirname(no_broken_file),
+      regexp = no_broken_file,
+      only_with_issues = FALSE,
+      show_summary = FALSE,
+      raise = "ok"
+    )
+  )
+
+  expect_silent(
+    with_issues_no_broken <- check_links(
+      dir = dirname(no_broken_file),
+      regexp = no_broken_file,
+      only_with_issues = TRUE,
+      show_summary = FALSE,
+      raise = "ok"
+    )
+  )
+})
+
+test_that("check raise level = OK with broken links", {
+  expect_silent(
+    all_links_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = FALSE,
+      show_summary = FALSE,
+      raise = "ok"
+    )
+  )
+
+  expect_silent(
+    with_issues_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = TRUE,
+      show_summary = FALSE,
+      raise = "ok"
+    )
+  )
+})
+
+context("check raise level = warning")
+
+test_that("check raise level = warning with no broken links", {
+  expect_silent(
+    all_links_no_broken <- check_links(
+      dir = dirname(no_broken_file),
+      regexp = no_broken_file,
+      only_with_issues = FALSE,
+      show_summary = FALSE,
+      raise = "warning"
+    )
+  )
+
+  expect_silent(
+    with_issues_no_broken <- check_links(
+      dir = dirname(no_broken_file),
+      regexp = no_broken_file,
+      only_with_issues = TRUE,
+      show_summary = FALSE,
+      raise = "warning"
+    )
+  )
+})
+
+test_that("check raise level = warning with broken links", {
+  expect_warning(
+    all_links_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = FALSE,
+      show_summary = FALSE,
+      raise = "warning"
+    )
+  )
+
+  expect_warning(
+    with_issues_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = TRUE,
+      show_summary = FALSE,
+      raise = "warning"
+    )
+  )
+})
+
+
+context("check raise level = error")
+
+test_that("check raise level = error with no broken links", {
+  expect_silent(
+    all_links_no_broken <- check_links(
+      dir = dirname(no_broken_file),
+      regexp = no_broken_file,
+      only_with_issues = FALSE,
+      show_summary = FALSE,
+      raise = "error"
+    )
+  )
+
+  expect_silent(
+    with_issues_no_broken <- check_links(
+      dir = dirname(no_broken_file),
+      regexp = no_broken_file,
+      only_with_issues = TRUE,
+      show_summary = FALSE,
+      raise = "error"
+    )
+  )
+})
+
+test_that("check raise level = error with broken links", {
+  expect_error(
+    all_links_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = FALSE,
+      show_summary = FALSE,
+      raise = "error"
+    )
+  )
+
+  expect_error(
+    with_issues_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = TRUE,
+      show_summary = FALSE,
+      raise = "error"
+    )
+  )
+})
 
 
 ##### --------------------------------------------------------------------------
