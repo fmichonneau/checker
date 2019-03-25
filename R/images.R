@@ -26,7 +26,7 @@ process_alt_text <- function(.dt_img) {
               sep = "")))
         purrr::pwalk(.x,
           function(file, link, alt_text, ...) {
-            cat(paste("   ", link, "\n"))
+            cat(paste("   - ", link, "\n"))
           })
       }
     )
@@ -60,7 +60,7 @@ process_http_img <- function(.dt_img) {
               sep = "")))
         purrr::pwalk(.x,
           function(file, link, alt_text, ...) {
-            cat(paste("   ", link, "\n"))
+            cat(paste("   - ", link, "\n"))
           })
       }
     )
