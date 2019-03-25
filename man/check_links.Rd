@@ -7,9 +7,8 @@
 Currently only HTML files are supported.}
 \usage{
 check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
-  glob = NULL, only_with_issues = TRUE, show_full_path = FALSE,
-  raise = c("ok", "warning", "error"), by = c("page", "resource"),
-  show_summary = TRUE, ...)
+  glob = NULL, only_with_issues = TRUE, raise = c("ok", "warning",
+  "error"), by = c("page", "resource"), show_summary = TRUE, ...)
 }
 \arguments{
 \item{dir}{The directory to look for documents}
