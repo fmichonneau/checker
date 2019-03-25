@@ -47,7 +47,7 @@ test_that("output has correct format for self-contained", {
   expect_true(inherits(with_issues_self_contained, "tbl_df"))
   expect_identical(lapply(all_links_self_contained, class), expected_cols)
   expect_identical(lapply(with_issues_self_contained, class), expected_cols)
-  expect_identical(nrow(all_links_self_contained), 24L)
+  expect_identical(nrow(all_links_self_contained), 26L)
   expect_identical(nrow(with_issues_self_contained), get_n_issues(with_issues_self_contained))
   expect_true(nrow(with_issues_self_contained) >= 4)
 })
@@ -150,6 +150,37 @@ test_that("check for status code of valid links + message for fragments", {
   expect_true(length(grep("File exists", sub_valid$message)) > 0)
 })
 
+### images ---------------------------------------------------------------------
+
+context("self-contained images")
+
+test_that("no alt correctly parsed", {
+  sub_no_alt <- all_links_self_contained[
+    all_links_self_contained$tag_type == "img" &
+      is.na(all_links_self_contained$alt_text),
+    ]
+  expect_identical(nrow(sub_no_alt), 3L)
+  expect_output(
+    summary_check_images(all_links_self_contained),
+    "No 'alt' text for the following images"
+  )
+})
+
+test_that("alt correctly parsed", {
+  sub_with_alt <- all_links_self_contained[
+    all_links_self_contained$tag_type == "img" &
+      !is.na(all_links_self_contained$alt_text),
+    ]
+  expect_identical(nrow(sub_with_alt), 5L)
+  expect_identical(sum(!sub_with_alt$valid), 1L)
+})
+
+test_that("http test passes", {
+  expect_output(
+    summary_check_images(all_links_self_contained),
+    "All images passed the HTTP checks")
+})
+
 
 ###### -------------------------------------------------------------------------
 ## not self-contained files ----------------------------------------------------
@@ -178,7 +209,7 @@ test_that("output has correct format for not contained", {
   expect_true(inherits(with_issues_not_contained, "tbl_df"))
   expect_identical(lapply(all_links_not_contained, class), expected_cols)
   expect_identical(lapply(with_issues_not_contained, class), expected_cols)
-  expect_identical(nrow(all_links_not_contained), 31L)
+  expect_identical(nrow(all_links_not_contained), 33L)
   expect_identical(nrow(with_issues_not_contained), get_n_issues(with_issues_not_contained))
   expect_true(nrow(with_issues_not_contained) >= 4)
 })
@@ -296,6 +327,38 @@ test_that("check for status code of valid links + message for fragments", {
   expect_true(length(grep("Fragment .+ checked and found", sub_valid$message)) > 1)
   expect_true(length(grep("File exists", sub_valid$message)) > 0)
 })
+
+### images ---------------------------------------------------------------------
+
+context("not-contained images")
+
+test_that("no alt correctly parsed", {
+  sub_no_alt <- all_links_not_contained[
+    all_links_not_contained$tag_type == "img" &
+      is.na(all_links_not_contained$alt_text),
+    ]
+  expect_identical(nrow(sub_no_alt), 3L)
+  expect_output(
+    summary_check_images(all_links_not_contained),
+    "No 'alt' text for the following images"
+  )
+})
+
+test_that("alt correctly parsed", {
+  sub_with_alt <- all_links_not_contained[
+    all_links_not_contained$tag_type == "img" &
+      !is.na(all_links_not_contained$alt_text),
+    ]
+  expect_identical(nrow(sub_with_alt), 5L)
+  expect_identical(sum(!sub_with_alt$valid), 1L)
+})
+
+test_that("http test passes", {
+  expect_output(
+    summary_check_images(all_links_not_contained),
+    "Using HTTP protocol for the following images")
+})
+
 
 ###### -------------------------------------------------------------------------
 ### Pages with no links
@@ -580,7 +643,7 @@ test_that("output with no broken links", {
     "No broken links found"
   )
 
-  expect_silent(
+  expect_output(
     with_issues_no_broken <- check_links(
       dir = dirname(no_broken_file),
       regexp = no_broken_file,
