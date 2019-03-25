@@ -65,18 +65,3 @@ process_http_img <- function(.dt_img) {
       }
     )
 }
-
-
-summary_check_images <- function(.dt) {
-
-  .dt_img <- .dt[.dt$tag_type == "img", ]
-
-  if (identical(nrow(.dt_img), 0L))
-    return(invisible(.dt))
-
-  process_alt_text(.dt_img)
-
-  process_http_img(.dt_img)
-
-  invisible(.dt)
-}
