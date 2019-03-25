@@ -648,7 +648,7 @@ test_that("output with no broken links", {
       dir = dirname(no_broken_file),
       regexp = no_broken_file,
       only_with_issues = TRUE,
-      show_summary = FALSE,
+      show_summary = TRUE,
       raise = "ok"
     ),
     "No broken links found"
