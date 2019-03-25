@@ -565,3 +565,76 @@ test_that("check raise level = error with broken links", {
 ##### --------------------------------------------------------------------------
 ##### Test different types of outputs
 ##### --------------------------------------------------------------------------
+
+context("check different types of output")
+
+test_that("output with no broken links", {
+  expect_ouput(
+    all_links_no_broken <- check_links(
+      dir = dirname(no_broken_file),
+      regexp = no_broken_file,
+      only_with_issues = FALSE,
+      show_summary = TRUE,
+      raise = "ok"
+    ),
+    "No broken links found"
+  )
+
+  expect_silent(
+    with_issues_no_broken <- check_links(
+      dir = dirname(no_broken_file),
+      regexp = no_broken_file,
+      only_with_issues = TRUE,
+      show_summary = FALSE,
+      raise = "ok"
+    ),
+    "No broken links found"
+  )
+})
+
+test_that("output with broken links (by page)", {
+  expect_output(
+    all_links_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = FALSE,
+      show_summary = TRUE,
+      raise = "ok"
+    ),
+    "link: `no_file.html`"
+  )
+
+  expect_output(
+    with_issues_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = TRUE,
+      show_summary = TRUE,
+      raise = "ok"),
+    "link: `no_file.html`"
+  )
+})
+
+
+test_that("output with broken links (by resource)", {
+  expect_output(
+    all_links_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = FALSE,
+      show_summary = TRUE,
+      raise = "ok"
+    ),
+    "Resource: `no_file.html`"
+  )
+
+  expect_output(
+    with_issues_quick_broken <- check_links(
+      dir = dirname(quick_broken_file),
+      regexp = quick_broken_file,
+      only_with_issues = TRUE,
+      show_summary = TRUE,
+      raise = "ok"),
+    "Resource: `no_file.html`"
+  )
+})
