@@ -26,20 +26,6 @@ convert_data_uri <- function(data_uri) {
   paste0(substr(data_uri, 1, 100), "...")
 }
 
-##' @importFrom dplyr mutate
-make_path_rel <- function(.data, dir, show_full_path) {
-  if (show_full_path)
-    return(.data)
-
-  dir <- normalizePath(dir)
-
-  .data %>%
-    dplyr::mutate(
-      file = gsub(dir, ".", .data$file)
-    )
-}
-
-
 ##' @importFrom dplyr case_when
 get_uri_type <- function(scheme, server, ...) {
   dplyr::case_when(
