@@ -18,7 +18,7 @@ check_fragments_raw <- function(.dt, ...) {
       doc_xml <- xml2::read_html(full_path, encoding = "utf-8")
     }
 
-    if (identical(uri_type, "external")) {
+    if (identical(uri_type, "external") || identical(uri_type, "localhost")) {
       doc_xml <- try(xml2::read_html(full_path, encoding = "utf-8"),
         silent = TRUE)
       if (inherits(doc_xml, "try-error")) {

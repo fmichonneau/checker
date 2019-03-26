@@ -79,6 +79,7 @@ check_links <- function(dir = ".", recursive = TRUE,
       fn = dplyr::case_when(
         uri_type == "local" ~ "check_local_file",
         uri_type == "external" ~ "check_url",
+        uri_type == "localhost" ~ "check_url",
         uri_type == "data" ~ "check_data",
         uri_type %in% c("mailto", "news") ~ "no_check",
         TRUE ~ "unknown_protocol"

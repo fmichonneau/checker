@@ -32,6 +32,7 @@ get_uri_type <- function(scheme, server, ...) {
     scheme == "data" ~ "data",
     scheme == "mailto" ~ "mailto",
     scheme == "" & server == "" ~ "local",
+    scheme == "http" & server %in% c("localhost", "127.0.0.1") ~ "localhost",
     TRUE ~ "external"
   )
 }
