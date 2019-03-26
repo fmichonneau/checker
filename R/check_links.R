@@ -205,8 +205,10 @@ no_check <- function(full_path, ...) {
   )
 }
 
-unknown_protocol <- function(...) {
-  stop("Unknown protocol, please report the issue: https://github.com/fmichonneau/checker/issues/new")
+unknown_protocol <- function(full_path, ...) {
+  warning("Unknown protocol, for ", sQuote(full_path),
+    " please report the issue: ",
+    "https://github.com/fmichonneau/checker/issues/new")
 }
 
 extract_all_links <- function(dir, recursive, regexp, glob, ...) {
