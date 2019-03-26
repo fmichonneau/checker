@@ -20,6 +20,8 @@
 ##' @param ignore_pattern A vector of regular expressions matching the path of
 ##'   the links to ignore in the files (see Details).
 ##' @param ignore_tag A vector of HTML tags to ignore.
+##' @param check_external Should external links be checked? If `FALSE`, only
+##'   local links will be checked.
 ##' @param only_with_issues Should the results include only the broken links
 ##'   (default) or also the valid links?
 ##' @param raise If set to `warning` or `error`, the function will raise a
@@ -49,6 +51,7 @@ check_links <- function(dir = ".", recursive = TRUE,
                         regexp = "\\.html?$", glob = NULL,
                         ignore_pattern = NULL,
                         ignore_tag = NULL,
+                        check_external = TRUE,
                         only_with_issues = TRUE,
                         raise = c("ok", "warning", "error"),
                         by = c("page", "resource"),
@@ -60,7 +63,8 @@ check_links <- function(dir = ".", recursive = TRUE,
   links <- extract_all_links(dir = dir, recursive = recursive,
     regexp = regexp, glob = glob, ...) %>%
     filter_ignore_pattern(ignore_pattern) %>%
-    filter_ignore_tag(ignore_tag)
+    filter_ignore_tag(ignore_tag) %>%
+    filter_external(check_external)
 
   if (identical(nrow(links), 0L)) {
     return(empty_check_links())

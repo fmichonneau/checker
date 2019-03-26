@@ -18,3 +18,11 @@ filter_ignore_tag <- function(.dt, ignore_tag) {
   }
   .dt
 }
+
+filter_external <- function(.dt, check_external) {
+  if (!check_external) {
+    .dt <- .dt %>%
+      dplyr::filter(.data$uri_type != "external")
+  }
+  .dt
+}
