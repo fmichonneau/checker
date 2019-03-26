@@ -113,8 +113,11 @@ check_url_raw <- function(full_path) {
   )
 
   results <- vector("list", length(full_path))
-  chkr_pool <- curl::new_pool(total_con = length(full_path), host_con = 6,
-    multiplex = TRUE)
+  chkr_pool <- curl::new_pool(
+    total_con = length(full_path),
+    host_con = 12,
+    multiplex = TRUE
+  )
 
 
   for (i in seq_along(full_path)) {
@@ -147,8 +150,8 @@ check_url_raw <- function(full_path) {
     }
 
     curl::handle_setopt(h, nobody = 1L,
-      connecttimeout = 10L,
-      timeout = 15L,
+      connecttimeout = 15L,
+      timeout = 30L,
       failonerror = FALSE)
     curl::multi_add(h, done = success(), fail = failure(),
       pool = chkr_pool)
