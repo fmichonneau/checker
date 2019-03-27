@@ -124,7 +124,8 @@ check_links <- function(dir = ".", recursive = TRUE,
       .data$valid,
       .data$message,
       .data$alt_text
-    )
+    ) %>%
+    dplyr::arrange(.data$full_path)
 
   if (only_with_issues) {
     out <- out %>%
