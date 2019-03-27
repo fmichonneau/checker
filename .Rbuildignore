@@ -6,4 +6,4 @@
 ^LICENSE\.md$
 ^checker\.Rproj$
 ^\.Rproj\.user$
-^inst/rmd_files/test_.+files/
+^tests/testthat/rmd_files/test_.+files/
