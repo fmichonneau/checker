@@ -60,6 +60,9 @@ check_links <- function(dir = ".", recursive = TRUE,
   raise <- match.arg(raise)
   by <- match.arg(by)
 
+  ## `dir` must be local directory
+  assert_dir(dir)
+  dir <- normalizePath(dir)
   links <- extract_all_links(dir = dir, recursive = recursive,
     regexp = regexp, glob = glob, ...) %>%
     filter_ignore_pattern(ignore_pattern) %>%

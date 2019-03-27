@@ -47,5 +47,12 @@ handle_raise <- function(out, raise) {
       warning = warning(msg, call. = FALSE),
       error = stop(msg, call. = FALSE))
   }
+}
 
+##' @importFrom fs is_dir
+assert_dir <- function(dir) {
+  if (!identical(length(dir), 1L))
+    stop("Make sure you only provide 1 path", call. = FALSE)
+  if (!fs::is_dir(dir))
+    stop(sQuote(dir), " doesn't seem to be a directory", call. = FALSE)
 }
