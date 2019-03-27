@@ -7,9 +7,10 @@
 Currently only HTML files are supported.}
 \usage{
 check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
-  glob = NULL, ignore_pattern = NULL, ignore_tag = NULL,
-  only_with_issues = TRUE, raise = c("ok", "warning", "error"),
-  by = c("page", "resource"), show_summary = TRUE, ...)
+  glob = NULL, root_dir = dir, ignore_pattern = NULL,
+  ignore_tag = NULL, check_external = TRUE, only_with_issues = TRUE,
+  raise = c("ok", "warning", "error"), by = c("page", "resource"),
+  show_summary = TRUE, ...)
 }
 \arguments{
 \item{dir}{The directory to look for documents}
@@ -21,10 +22,18 @@ check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
 
 \item{glob}{A wildcard pattern matching the names of the files to check.}
 
+\item{root_dir}{The path for the root of the website. By default, the same
+value as `dir`, but can be overriden to use another path (if testing only
+some files within the directory structure of the site) or a webserver
+address (e.g., `http://localhost:4000`, if testing a Jekyll site).}
+
 \item{ignore_pattern}{A vector of regular expressions matching the path of
 the links to ignore in the files (see Details).}
 
 \item{ignore_tag}{A vector of HTML tags to ignore.}
+
+\item{check_external}{Should external links be checked? If `FALSE`, only
+local links will be checked.}
 
 \item{only_with_issues}{Should the results include only the broken links
 (default) or also the valid links?}
@@ -57,7 +66,7 @@ displayed. Using \code{page} is typically more convenient for small sites,
 while \code{resource} works better for larger websites that use templates
 are more likely to have mispecified resources across many pages.
 
-## Ignore patterns
+## Ignore pattern
 
   If more than one regular expressions is provided to `ignore_pattern`, they
   will be evaluated in succession: thus, the order in which you provide them
