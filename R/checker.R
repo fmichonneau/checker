@@ -17,6 +17,10 @@
 ##'   `TRUE`).
 ##' @param regexp A regular expression matching the names of the files to check.
 ##' @param glob A wildcard pattern matching the names of the files to check.
+##' @param root_dir The path for the root of the website. By default, the same
+##'   value as `dir`, but can be overriden to use another path (if testing only
+##'   some files within the directory structure of the site) or a webserver
+##'   address (e.g., `http://localhost:4000`, if testing a Jekyll site).
 ##' @param ignore_pattern A vector of regular expressions matching the path of
 ##'   the links to ignore in the files (see Details).
 ##' @param ignore_tag A vector of HTML tags to ignore.
@@ -31,7 +35,7 @@
 ##' @param ... additional parameters to be passed to `grep` to match the file
 ##'   names to check.
 ##' @details
-##'   ## Ignore patterns
+##'   ## Ignore pattern
 ##'
 ##'   If more than one regular expressions is provided to `ignore_pattern`, they
 ##'   will be evaluated in succession: thus, the order in which you provide them
@@ -49,6 +53,7 @@
 ##' @export
 check_links <- function(dir = ".", recursive = TRUE,
                         regexp = "\\.html?$", glob = NULL,
+                        root_dir = dir,
                         ignore_pattern = NULL,
                         ignore_tag = NULL,
                         check_external = TRUE,
@@ -63,8 +68,21 @@ check_links <- function(dir = ".", recursive = TRUE,
   ## `dir` must be local directory
   assert_dir(dir)
   dir <- normalizePath(dir)
+
+  ## `root_dir` may not be a local directory but it needs to be of length 1
+  if (!identical(length(root_dir), 1L)) {
+    stop(sQuote("root_dir"), " argument must be a single element. It has: ",
+      length(root_dir), ".")
+  }
+  if (fs::is_dir(root_dir)) {
+    root_dir <- normalizePath(root_dir, mustWork = TRUE)
+  }
+  if (!identical(substr(root_dir, nchar(root_dir), nchar(root_dir)), "/")) {
+    root_dir <- paste0(root_dir, "/")
+  }
+
   links <- extract_all_links(dir = dir, recursive = recursive,
-    regexp = regexp, glob = glob, ...) %>%
+    regexp = regexp, glob = glob, root_dir = root_dir, ...) %>%
     filter_ignore_pattern(ignore_pattern) %>%
     filter_ignore_tag(ignore_tag) %>%
     filter_external(check_external)

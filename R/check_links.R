@@ -1,7 +1,7 @@
 ##' @importFrom xml2 read_html xml_find_all xml_text url_parse
 ##' @importFrom tibble tibble
 ##' @importFrom dplyr  bind_cols mutate
-extract_links_html  <- function(doc) {
+extract_links_html  <- function(doc, root_dir) {
 
   doc <- normalizePath(doc)
 
@@ -63,7 +63,9 @@ extract_links_html  <- function(doc) {
         scheme == "data" ~ convert_data_uri(.data$link),
         ## within document urls
         scheme == "" & uri_type == "local" & substr(.data$link, 1, 1) == "#" ~ doc,
-        ## local files
+        ## local files absolute paths
+        scheme == "" & uri_type == "local" & substr(.data$link, 1, 1) == "/" ~ normalizePath(file.path(root_dir, .data$path), mustWork = FALSE),
+        ## local files other types of paths
         scheme == "" & uri_type == "local" ~ normalizePath(file.path(base_path, .data$path), mustWork = FALSE),
         ## generic scheme (e.g. '//somewebsite.com')
         scheme == "" & nzchar(server) ~ paste0("https:", .data$link),
@@ -211,7 +213,7 @@ unknown_protocol <- function(full_path, ...) {
     "https://github.com/fmichonneau/checker/issues/new")
 }
 
-extract_all_links <- function(dir, recursive, regexp, glob, ...) {
+extract_all_links <- function(dir, recursive, regexp, glob, root_dir, ...) {
 
   list_files <- fs::dir_ls(
     path = dir,
@@ -225,6 +227,6 @@ extract_all_links <- function(dir, recursive, regexp, glob, ...) {
     warning("No files match your search.")
   }
 
-  purrr::map_df(list_files, extract_links_html, .id = "file")
+  purrr::map_df(list_files, extract_links_html, root_dir, .id = "file")
 
 }

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>Test one broken link</title>
+  </head>
+
+
+  <body>
+
+    <p>I hold valid links.</p>
+
+    <ul>
+      <li><a href="below_rel_paths/two_below_rel_paths/test_two_below_rel_paths.html">two below</a></li>
+      <li><a href="./below_rel_paths/another_below_rel_paths.html">one below</a></li>
+      <li><a href="below_rel_paths/another_below_rel_paths.html">one below</a></li>
+      <li><a href="./test_rel_paths.html">same level</a></li>
+      <li><a href="test_rel_paths.html">same level</a></li>
+      <li><a href="/test_all_valid.html">absolute at the root</a></li>
+      <li><a href="test_all_valid.html">relative at the root</a></li>
+    </ul>
+
+   <p>I hold broken links.</p>
+
+   <ul>
+     <li><a href="foo.html">broken same level</a></li>
+     <li><a href="below_rel_paths/foo.html">broken one below</a></li>
+     <li><a href="below_rel_paths/two_below_rel_paths/foo.html">broken two below</a></li>
+     <li><a href="/foo.html">broken absolute</a></li>
+     <li><a href="../foo.html">broken one above</a></li>
+    </ul>
+  </body>
+</html>
