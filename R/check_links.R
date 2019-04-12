@@ -80,6 +80,22 @@ extract_links_html  <- function(doc, root_dir) {
     ## remove empty links
     dplyr::filter(.data$link != "#")
 
+  ## Do a second pass: we modified some paths and URLs doing this allows to make
+  ## sure we have more accurate data for the URI type.
+  res <- res %>%
+  dplyr::select(
+    -.data$scheme, -.data$server,
+    -.data$port, -.data$user,
+    -.data$path, -.data$query,
+    -.data$fragment
+  ) %>%
+  dplyr::bind_cols(
+    xml2::url_parse(res$full_path)
+  )  %>%
+  dplyr::mutate(
+    uri_type = get_uri_type(.data$scheme, .data$server)
+  )
+
   res
 }
 

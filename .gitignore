@@ -4,3 +4,4 @@
 /tests/testthat/rmd_files/test_self_contained.html
 /tests/testthat/rmd_files/test_not_contained.html
 /tests/testthat/rmd_files/test*/
+Gemfile.lock
