@@ -15,10 +15,13 @@ if (has_bundle()) {
       processx::process$new(
         "bundle",
         c("exec", "jekyll", "serve", "--port", "4001"),
-        echo = TRUE)
+        echo = TRUE, stdout = "|", stderr = "|")
     })
 
-  jkyl$wait()
+  jkyl$wait(2000)
+
+  vv <- jkyl$read_output_lines()
+  if (!any(grepl("Server running", vv))) stop("jekyll not running")
 
   res_jekyll <- check_links(
     "jekyll_site/testsite/_site",
