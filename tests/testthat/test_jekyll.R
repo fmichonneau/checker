@@ -18,6 +18,8 @@ if (has_bundle()) {
         echo = TRUE)
     })
 
+  jkyl$wait()
+
   res_jekyll <- check_links(
     "jekyll_site/testsite/_site",
     root_dir = "http://localhost:4001",
