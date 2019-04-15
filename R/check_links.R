@@ -216,11 +216,14 @@ check_url <- function(full_path, ...) {
 }
 
 check_data <- function(full_path, ...) {
+
+  has_data_issue <- grepl("^data:text/html", full_path)
+
   tibble::tibble(
     url = full_path,
-    valid = !grepl("^data:text/html", full_path),
+    valid = !has_data_issue,
     message = dplyr::if_else(
-      .data$valid,
+      has_data_issue,
       "",
       "Contained data represented as text, usually indicates incorrect path."
     )
