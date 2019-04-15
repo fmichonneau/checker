@@ -83,18 +83,21 @@ extract_links_html  <- function(doc, root_dir) {
   ## Do a second pass: we modified some paths and URLs doing this allows to make
   ## sure we have more accurate data for the URI type.
   res <- res %>%
-  dplyr::select(
-    -.data$scheme, -.data$server,
-    -.data$port, -.data$user,
-    -.data$path, -.data$query,
-    -.data$fragment
-  ) %>%
-  dplyr::bind_cols(
-    xml2::url_parse(res$full_path)
-  )  %>%
-  dplyr::mutate(
-    uri_type = get_uri_type(.data$scheme, .data$server)
-  )
+    ## we want to keep the original values for the bits that can from the
+    ## original URLS as they won't be included in the `full_path` variable.
+    ## For now, we only use `fragment`
+    dplyr::select(
+      -.data$scheme, -.data$server
+    ) %>%
+    dplyr::bind_cols(
+      xml2::url_parse(res$full_path) %>%
+        dplyr::select(-.data$fragment,
+          -.data$port, -.data$user,
+          -.data$path, -.data$query)
+    )  %>%
+    dplyr::mutate(
+      uri_type = get_uri_type(.data$scheme, .data$server)
+    )
 
   res
 }
