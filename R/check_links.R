@@ -140,10 +140,9 @@ check_url_raw <- function(full_path) {
   results <- vector("list", length(full_path))
   chkr_pool <- curl::new_pool(
     total_con = length(full_path),
-    host_con = 12,
+    host_con = 1,
     multiplex = TRUE
   )
-
 
   for (i in seq_along(full_path)) {
     h <- curl::new_handle(url = full_path[i])
@@ -192,26 +191,12 @@ check_url_raw <- function(full_path) {
 }
 
 
+
 ##' @importFrom purrr map_df
 check_url <- function(full_path, ...) {
 
   check_url_raw(full_path) %>%
-    purrr::map_df(
-      function(.x) {
-        if (exists("status_code", .x)) {
-          list(
-            url = .x$original_url,
-            valid = .x$status_code == 200L,
-            message = paste("HTTP status code:", .x$status_code))
-        } else {
-          list(
-            url = .x$original_url,
-            valid = FALSE,
-            message = .x$message
-          )
-        }
-      }
-    )
+    purrr::map_df(url_check_result)
 
 }
 
