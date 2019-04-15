@@ -784,7 +784,7 @@ test_that("2 values for ignore tag", {
 test_that("no effect for non-matching tag filter", {
   expect_identical(
     ign_tag_foo[sort(ign_tag_foo$full_path), ],
-    all_links_self_contained[sort(all_links_self_contained), ]
+    all_links_self_contained[sort(all_links_self_contained$full_path), ]
   )
 })
 
