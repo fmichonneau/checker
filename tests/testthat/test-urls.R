@@ -762,7 +762,8 @@ test_that("2 values for ignore_pattern", {
 
 test_that("no effect for non-matching pattern filter", {
   expect_identical(
-    ign_pattern_foo, all_links_self_contained
+    ign_pattern_foo[sort(ign_pattern_foo$full_path), ],
+    all_links_self_contained[sort(all_links_self_contained$full_path), ]
   )
 })
 
@@ -782,7 +783,8 @@ test_that("2 values for ignore tag", {
 
 test_that("no effect for non-matching tag filter", {
   expect_identical(
-    ign_tag_foo, all_links_self_contained
+    ign_tag_foo[sort(ign_tag_foo$full_path), ],
+    all_links_self_contained[sort(all_links_self_contained), ]
   )
 })
 
