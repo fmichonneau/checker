@@ -128,6 +128,10 @@ check_local_file <- function(full_path) {
 ##' @importFrom curl new_handle handle_setopt multi_add multi_run
 check_url_raw <- function(full_path) {
 
+  req_user_agent <- paste("checker, https://github.com/fmichonneau/checker",
+    packageVersion("checker"),
+    sep = ", ")
+
   p <- progress::progress_bar$new(
     total = length(full_path),
     format = "  Checking link :current out of :total [:bar] :percent"
@@ -170,10 +174,15 @@ check_url_raw <- function(full_path) {
       }
     }
 
-    curl::handle_setopt(h, nobody = 1L,
-      connecttimeout = 15L,
-      timeout = 30L,
+    curl::handle_setopt(h,
+      customrequest = "HEAD",
+      nobody = 1L,
+      #connecttimeout = 15L,
+      #timeout = 30L,
       failonerror = FALSE)
+    curl::handle_setheaders(h,
+      "User-Agent" = req_user_agent
+    )
     curl::multi_add(h, done = success(), fail = failure(),
       pool = chkr_pool)
   }
