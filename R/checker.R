@@ -10,6 +10,9 @@
 ##' while \code{resource} works better for larger websites that use templates
 ##' are more likely to have mispecified resources across many pages.
 ##'
+##' `checker` attempts to respect the rules specified by the robots.txt files
+##' provided by the external servers. Thus some URLs might not be checked.
+##'
 ##' @param dir The directory to look for documents
 ##' @param recursive Should sub-folders be searched for documents? (default
 ##'   `TRUE`).

@@ -8,7 +8,7 @@ check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
   glob = NULL, root_dir = dir, ignore_pattern = NULL,
   ignore_tag = NULL, check_external = TRUE, only_with_issues = TRUE,
   raise = c("ok", "warning", "error"), by = c("page", "resource"),
-  show_summary = TRUE, checker_options, ...)
+  show_summary = TRUE, checker_options = NULL, ...)
 }
 \arguments{
 \item{dir}{The directory to look for documents}
@@ -64,6 +64,9 @@ The \code{by} argument controls how the summary of the results is being
 displayed. Using \code{page} is typically more convenient for small sites,
 while \code{resource} works better for larger websites that use templates
 are more likely to have mispecified resources across many pages.
+
+`checker` attempts to respect the rules specified by the robots.txt files
+provided by the external servers. Thus some URLs might not be checked.
 
 ## Ignore pattern
 
