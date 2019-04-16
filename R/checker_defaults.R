@@ -60,15 +60,34 @@ checker_default_options <- function() {
   )
 }
 
-
+##' Checker Options
+##'
+##' @details Customize which HTTP status codes and other situations lead checker
+##'   to mark links and other URIs as invalid/broken.
+##'
+##' You can customize default values by:
+##'
+##' * specifying options in your .Rprofile
+##'
+##' * passing a list of the options you want to customize to `check_link()`
+##' using the `checker_options` argument
+##'
+##' @param checker_options a named list of the checker options to customize.
+##' @param ... ignored
+##' @return a customized list of checker options
+##' @examples
+##' ## check_links(..., checker_options = list(status_code_300 = TRUE, status_code_301 = TRUE))
 ##' @importFrom utils modifyList
 ##' @importFrom purrr map_lgl
-checker_options <- function(checker_options) {
+##' @export
+checker_options <- function(checker_options, ...) {
   def <- checker_default_options()
 
   if (missing(checker_options)) {
     usr <- getOption("checker.options")
   } else {
+    if (!is.list(checker_options))
+      stop(sQuote("checker_options"), " must be a list.", call. = FALSE)
     usr <- checker_options
   }
 

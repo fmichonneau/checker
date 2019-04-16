@@ -196,7 +196,7 @@ check_url_raw <- function(full_path) {
 check_url <- function(full_path, ...) {
 
   check_url_raw(full_path) %>%
-    purrr::map_df(url_check_result)
+    purrr::map_df(url_check_result, ...)
 
 }
 

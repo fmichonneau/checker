@@ -15,28 +15,31 @@ new_check_result <- function(url, status_code, message, ...) {
   res
 }
 
-url_check_result <- function(.x) {
+url_check_result <- function(.x, ...) {
   if (exists("status_code", .x)) {
     new_check_result(
       url = .x$original_url,
       status_code = .x$status_code,
-      message = paste("HTTP status code:", .x$status_code))
+      message = paste("HTTP status code:", .x$status_code),
+      ...
+    )
   } else {
     new_check_result(
       url = .x$original_url,
       status_code = NULL,
-      message = .x$message
+      message = .x$message,
+      ...
     )
   }
 }
 
 
-is_valid <- function(status_code = NULL, message, opts) {
+is_valid <- function(status_code = NULL, message, ...) {
 
   if (identical(status_code, 200L))
     return(TRUE)
 
-  opts <- checker_options(opts)
+  opts <- checker_options(...)
   code_var <- paste0("status_code_", status_code)
   if (exists(code_var, opts))
     return(opts[[code_var]])

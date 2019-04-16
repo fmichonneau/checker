@@ -32,6 +32,8 @@
 ##'   warning or an error if broken links are found.
 ##' @param by How should the results of the checks be aggregated?
 ##' @param show_summary Should a summary of the results be printed?
+##' @param checker_options An optional list that specifies which situations
+##'   checker should consider invalid. See \code{\link{checker_options}}.
 ##' @param ... additional parameters to be passed to `grep` to match the file
 ##'   names to check.
 ##' @details
@@ -60,7 +62,8 @@ check_links <- function(dir = ".", recursive = TRUE,
                         only_with_issues = TRUE,
                         raise = c("ok", "warning", "error"),
                         by = c("page", "resource"),
-                        show_summary = TRUE, ...) {
+                        show_summary = TRUE,
+                        checker_options, ...) {
 
   raise <- match.arg(raise)
   by <- match.arg(by)
@@ -106,7 +109,7 @@ check_links <- function(dir = ".", recursive = TRUE,
         TRUE ~ "unknown_protocol"
       )) %>%
     dplyr::mutate(
-      res = purrr::invoke_map(.data$fn, .data$data)
+      res = purrr::invoke_map(.data$fn, .data$data, checker_options)
     ) %>%
     tidyr::unnest()
 
