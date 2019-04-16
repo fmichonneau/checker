@@ -63,7 +63,7 @@ check_links <- function(dir = ".", recursive = TRUE,
                         raise = c("ok", "warning", "error"),
                         by = c("page", "resource"),
                         show_summary = TRUE,
-                        checker_options, ...) {
+                        checker_options = NULL, ...) {
 
   raise <- match.arg(raise)
   by <- match.arg(by)

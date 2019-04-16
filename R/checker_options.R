@@ -83,7 +83,7 @@ checker_default_options <- function() {
 checker_options <- function(checker_options, ...) {
   def <- checker_default_options()
 
-  if (missing(checker_options)) {
+  if (is.null(checker_options)) {
     usr <- getOption("checker.options")
   } else {
     if (!is.list(checker_options))
