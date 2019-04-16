@@ -3,8 +3,6 @@
 
 ##' @title Check links in your documents
 ##'
-##' Currently only HTML files are supported.
-##'
 ##' @details Data URI and \code{mailto:} links are not checked.
 ##'
 ##' The \code{by} argument controls how the summary of the results is being
