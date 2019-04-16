@@ -95,6 +95,9 @@ check_links <- function(dir = ".", recursive = TRUE,
     return(empty_check_links())
   }
 
+  if (! "is_allowed" %in% names(links))
+    links$is_allowed <- NA
+
   uniq_links <- dplyr::distinct(
     links,
     .data$uri_type,
