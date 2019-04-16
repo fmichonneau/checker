@@ -83,7 +83,7 @@ extract_links_html  <- function(doc, root_dir) {
   ## Do a second pass: we modified some paths and URLs doing this allows to make
   ## sure we have more accurate data for the URI type.
   res <- res %>%
-    ## we want to keep the original values for the bits that can from the
+    ## we want to keep the original values for the bits that come from the
     ## original URLS as they won't be included in the `full_path` variable.
     ## For now, we only use `fragment`
     dplyr::select(
