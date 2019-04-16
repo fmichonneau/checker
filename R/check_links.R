@@ -104,7 +104,7 @@ extract_links_html  <- function(doc, root_dir) {
 
 ##' @importFrom fs file_exists
 ##' @importFrom purrr map_df
-check_local_file <- function(full_path) {
+check_local_file <- function(full_path, ...) {
   purrr::map2_df(
     fs::file_exists(full_path),
     full_path,
