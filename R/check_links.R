@@ -126,10 +126,11 @@ check_local_file <- function(full_path, ...) {
 
 ##' @importFrom progress progress_bar
 ##' @importFrom curl new_handle handle_setopt multi_add multi_run
+##' @importFrom utils packageVersion
 check_url_raw <- function(full_path) {
 
   req_user_agent <- paste("checker, https://github.com/fmichonneau/checker",
-    packageVersion("checker"),
+    utils::packageVersion("checker"),
     sep = ", ")
 
   p <- progress::progress_bar$new(
