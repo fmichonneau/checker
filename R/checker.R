@@ -92,15 +92,21 @@ check_links <- function(dir = ".", recursive = TRUE,
     return(empty_check_links())
   }
 
-  uniq_links <- dplyr::distinct(links, .data$uri_type, .data$full_path)
+  uniq_links <- dplyr::distinct(
+    links,
+    .data$uri_type,
+    .data$full_path,
+    .data$is_allowed
+  )
 
   res <- uniq_links %>%
-    dplyr::group_by(.data$uri_type) %>%
+    dplyr::group_by(.data$uri_type, .data$is_allowed) %>%
     tidyr::nest() %>%
     dplyr::mutate(
       fn = dplyr::case_when(
         uri_type == "local" ~ "check_local_file",
-        uri_type == "external" ~ "check_url",
+        uri_type == "external" & (is_allowed | is.na(is_allowed)) ~ "check_url",
+        uri_type == "external" ~ "robotstxt_denied",
         uri_type == "localhost" ~ "check_url",
         uri_type == "data" ~ "check_data",
         uri_type %in% c("mailto", "news") ~ "no_check",

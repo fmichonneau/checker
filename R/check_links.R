@@ -97,9 +97,12 @@ extract_links_html  <- function(doc, root_dir) {
     )  %>%
     dplyr::mutate(
       uri_type = get_uri_type(.data$scheme, .data$server)
-    )
+    ) %>%
+    ## Time to deal with robotstxt
+    get_robotstxt()
 
   res
+
 }
 
 ##' @importFrom fs file_exists
@@ -221,6 +224,14 @@ no_check <- function(full_path, ...) {
     url = full_path,
     valid = NA,
     message = ""
+  )
+}
+
+robotstxt_denied <- function(full_path, ...) {
+  tibble::tibble(
+    url = full_path,
+    valid = NA,
+    message = "Can't check, denied by robots.txt."
   )
 }
 
