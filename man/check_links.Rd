@@ -2,15 +2,13 @@
 % Please edit documentation in R/checker.R
 \name{check_links}
 \alias{check_links}
-\title{Check links in your documents
-
-Currently only HTML files are supported.}
+\title{Check links in your documents}
 \usage{
 check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
   glob = NULL, root_dir = dir, ignore_pattern = NULL,
   ignore_tag = NULL, check_external = TRUE, only_with_issues = TRUE,
   raise = c("ok", "warning", "error"), by = c("page", "resource"),
-  show_summary = TRUE, ...)
+  show_summary = TRUE, checker_options, ...)
 }
 \arguments{
 \item{dir}{The directory to look for documents}
@@ -45,6 +43,9 @@ warning or an error if broken links are found.}
 
 \item{show_summary}{Should a summary of the results be printed?}
 
+\item{checker_options}{An optional list that specifies which situations
+checker should consider invalid. See \code{\link{checker_options}}.}
+
 \item{...}{additional parameters to be passed to `grep` to match the file
 names to check.}
 }
@@ -55,8 +56,6 @@ a tibble with the name of the file that includes the link, the link,
 }
 \description{
 Check links in your documents
-
-Currently only HTML files are supported.
 }
 \details{
 Data URI and \code{mailto:} links are not checked.
