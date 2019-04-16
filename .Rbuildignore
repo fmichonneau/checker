@@ -7,3 +7,4 @@
 ^checker\.Rproj$
 ^\.Rproj\.user$
 ^tests/testthat/rmd_files/test_.+files/
+^tests/testthat/jekyll_site/testsite/.sass-cache$
