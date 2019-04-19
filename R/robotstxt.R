@@ -11,11 +11,15 @@ get_robotstxt <- function(input) {
   rbt <- rbt %>%
     dplyr::mutate(is_allowed = purrr::pmap(rbt,
       function(full_server, data, ...) {
-        rbt <- suppressMessages(
+        rbt <- try(suppressMessages(
           robotstxt::robotstxt(full_server, warn = FALSE)
-        )
+        ))
+
+        if (inherits(rbt, "try-error"))
+          return(rep(TRUE, length(data$path)))
+
         rbt$check(paths = data$path)
-    })) %>%
+      })) %>%
     tidyr::unnest() %>%
     dplyr::select(-.data$full_server)
 
