@@ -132,9 +132,8 @@ check_local_file <- function(full_path, ...) {
 ##' @importFrom utils packageVersion
 check_url_raw <- function(full_path) {
 
-  req_user_agent <- paste("checker, https://github.com/fmichonneau/checker",
-    utils::packageVersion("checker"),
-    sep = ", ")
+  req_user_agent <- paste0("checker, https://github.com/fmichonneau/checker ",
+    "(", utils::packageVersion("checker"), ")")
 
   p <- progress::progress_bar$new(
     total = length(full_path),
