@@ -111,9 +111,9 @@ check_links <- function(dir = ".", recursive = TRUE,
     dplyr::mutate(
       fn = dplyr::case_when(
         uri_type == "local" ~ "check_local_file",
-        uri_type == "external" & (is_allowed | is.na(is_allowed)) ~ "check_url",
+        uri_type == "external" & (is_allowed | is.na(is_allowed)) ~ "check_url_external",
         uri_type == "external" ~ "robotstxt_denied",
-        uri_type == "localhost" ~ "check_url",
+        uri_type == "localhost" ~ "check_url_localhost",
         uri_type == "data" ~ "check_data",
         uri_type %in% c("ftp", "ftps", "mailto", "news") ~ "no_check",
         TRUE ~ "unknown_protocol"
@@ -123,10 +123,12 @@ check_links <- function(dir = ".", recursive = TRUE,
     ) %>%
     tidyr::unnest()
 
+
+
   out <- dplyr::left_join(links, res, by = c("full_path", "uri_type"))
 
   out <- out %>%
-    check_fragments() %>%
+    check_fragments(checker_options) %>%
     dplyr::select(
       .data$file,
       .data$tag_type,
@@ -134,7 +136,7 @@ check_links <- function(dir = ".", recursive = TRUE,
       .data$scheme,
       .data$link_text,
       .data$full_path,
-      .data$valid,
+      .data$error_level,
       .data$message,
       .data$alt_text
     ) %>%
@@ -166,7 +168,7 @@ empty_check_links <- function() {
     scheme = character(0),
     link_text = character(0),
     full_path = character(0),
-    valid = logical(0),
+    error_level = integer(0),
     message = character(0),
     alt_text = character(0)
   )

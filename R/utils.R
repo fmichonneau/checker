@@ -1,5 +1,5 @@
 broken_link_assertion <- function(.dt) {
-  !.dt$valid
+  .dt$error_level == 3L
 }
 
 has_issues_assertion <- function(.dt) {
@@ -57,3 +57,11 @@ assert_dir <- function(dir) {
   if (!fs::is_dir(dir))
     stop(sQuote(dir), " doesn't seem to be a directory", call. = FALSE)
 }
+
+
+### semantically meaninful functions to deal with error codes
+is_error <- function() return(3L)
+is_warning <- function() return(2L)
+is_message <- function() return(1L)
+is_silent <- function() return(0L)
+is_success <- function() return(-1L)

@@ -1,13 +1,14 @@
-check_fragments_raw <- function(.dt, ...) {
+check_fragments_raw <- function(.dt, checker_options, ...) {
 
   purrr::pmap(.dt, function(full_path, fragment, data, uri_type, ...) {
 
     if (!nzchar(fragment)) return(data)
 
     if (identical(uri_type, "local") && !fs::file_exists(full_path)) {
+      opt_missing_file <- checker_options(checker_options)[["missing_local_file"]]
       return(
         tibble::tibble(
-          valid = FALSE,
+          error_level = opt_missing_file,
           message = sprintf("Local URL '%s' doesn't exist.",
             full_path)
         )
@@ -24,7 +25,7 @@ check_fragments_raw <- function(.dt, ...) {
       if (inherits(doc_xml, "try-error")) {
         return(
           tibble::tibble(
-            valid = NA,
+            error_level = NA_integer_,
             message = sprintf("Couldn't parse '%s': %s",
               full_path, doc_xml)
           )
@@ -42,12 +43,13 @@ check_fragments_raw <- function(.dt, ...) {
 
     if (res_anchor > 0L) {
       res <- list(
-        valid = TRUE,
+        error_level = is_success(),
         message = sprintf("Fragment ('%s') checked and found.", fragment)
       )
     } else {
+      opt_anchor <- checker_options(checker_options)[["missing_anchor"]]
       res <- list(
-        valid = FALSE,
+        error_level = opt_anchor,
         message = sprintf(
           "URL is valid but fragment (hash reference): '%s' not found in page.",
           fragment
@@ -59,11 +61,11 @@ check_fragments_raw <- function(.dt, ...) {
 
 }
 
-check_fragments <- function(.d, ...) {
+check_fragments <- function(.d, checker_options, ...) {
   .d <- .d %>%
-    tidyr::nest(.data$valid, .data$message)
+    tidyr::nest(.data$error_level, .data$message)
 
-  .d_res <- check_fragments_raw(.d)
+  .d_res <- check_fragments_raw(.d, checker_options)
 
   .d %>%
     dplyr::mutate(

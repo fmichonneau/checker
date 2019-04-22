@@ -6,9 +6,13 @@
 checker_default_options <- function() {
   list(
     ## files
-    missing_files = 3L,
+    missing_local_file = 3L,
+    ## broken local data URI
+    broken_data_uri = 3L,
     ## anchors
     missing_anchor = 3L,
+    ## denied by robots
+    robots_denied = 1L,
     ## misc
     ssl_timeout = 1L,
     operation_timeout = 1L,
