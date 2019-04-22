@@ -13,7 +13,7 @@ get_robotstxt <- function(input) {
       function(full_server, data, ...) {
         rbt <- try(suppressMessages(
           robotstxt::robotstxt(full_server, warn = FALSE)
-        ))
+        ), silent = TRUE)
 
         if (inherits(rbt, "try-error"))
           return(rep(TRUE, length(data$path)))
