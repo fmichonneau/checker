@@ -1,6 +1,6 @@
 Package: checker
 Title: Check URLs and best practices in accessiblity for your HTML ...
-Version: 0.0.1.9000
+Version: 0.0.1.9010
 Authors@R: 
     person(given = "François",
            family = "Michonneau",
