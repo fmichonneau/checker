@@ -91,7 +91,7 @@ summary_check_links <- function(.dt, by) {
   }
 
   .dt_broken <- .dt %>%
-    dplyr::filter(!.data$valid)
+    dplyr::filter(.data$error_level > 0L)
 
   out <- switch(by,
     page = split(.dt_broken, .dt_broken$file),
