@@ -115,7 +115,7 @@ check_links <- function(dir = ".", recursive = TRUE,
         uri_type == "external" ~ "robotstxt_denied",
         uri_type == "localhost" ~ "check_url",
         uri_type == "data" ~ "check_data",
-        uri_type %in% c("mailto", "news") ~ "no_check",
+        uri_type %in% c("ftp", "ftps", "mailto", "news") ~ "no_check",
         TRUE ~ "unknown_protocol"
       )) %>%
     dplyr::mutate(
