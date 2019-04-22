@@ -9,7 +9,7 @@ checker_options(checker_options, ...)
 \arguments{
 \item{checker_options}{a named list of the checker options to customize.}
 
-\item{...}{ignored}
+\item{...}{ignored for now}
 }
 \value{
 a customized list of checker options
@@ -19,19 +19,24 @@ Checker Options
 }
 \details{
 Customize which HTTP status codes and other situations lead checker
-  to mark links and other URIs as invalid/broken.
+  to mark links and other URIs as problematic.
 
-Options set to TRUE will be interpreted by checker as valid links. For
-instance, you will most likely always want `status_code_404 = FALSE`, so
+Each options can take one of 4 values: 0, 1, 2, or 3:
+- 0: silently ignored situation
+- 1: message-level notification that the situation was encountered
+- 2: warning-level notification
+- 3: error-level notification.
+
+For instance, you will most likely always want `status_code_404 = 3L`, so
 checker will report as invalid 404 HTTP status codes.
 
 You can customize default values by:
 
 * specifying options in your .Rprofile
 
-* passing a list of the options you want to customize to `check_link()`
+* passing a list of the options you want to customize to `check_links()`
 using the `checker_options` argument
 }
 \examples{
-## check_links(..., checker_options = list(status_code_300 = TRUE, status_code_301 = TRUE))
+## check_links(..., checker_options = list(status_code_300 = 0L, status_code_301 = 2L))
 }
