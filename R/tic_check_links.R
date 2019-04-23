@@ -13,9 +13,9 @@
 check_jekyll_links <- function(site_root = ".",
                                jekyll_port = "4000",
                                timeout = 1000,
-                               verbose,
+                               verbose = TRUE,
                                ...
-                               ) {
+) {
 
   timeout <- as.difftime(timeout, units = "secs")
   deadline <- Sys.time() + timeout
