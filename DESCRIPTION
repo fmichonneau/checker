@@ -8,18 +8,20 @@ Authors@R:
            email = "francois.michonneau@gmail.com")
 Description: Check URLs (internal, external, images, ...) in your documents.
 Imports:
-  cli,
-  crayon,
-  curl,
-  dplyr,
-  fs,
-  progress,
-  purrr,
-  robotstxt,
-  rlang,
-  tidyr,
-  tibble,
-  xml2
+    cli,
+    crayon,
+    curl,
+    dplyr,
+    fs,
+    progress,
+    purrr,
+    R6,
+    robotstxt,
+    rlang,
+    tidyr,
+    tibble,
+    xml2,
+    tic (>= 0.2.13.9010)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -33,3 +35,5 @@ Suggests:
     rmarkdown,
     testthat,
     withr
+Remotes:  
+    ropenscilabs/tic
