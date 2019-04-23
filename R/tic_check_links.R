@@ -36,7 +36,7 @@ check_jekyll_links <- function(site_root = ".",
     poll_time <- as.double(deadline - now, units = "secs") * 1000
     jkyl$poll_io(as.integer(poll_time))
     lines <- jkyl$read_output_lines()
-    if (verbose) message(cat(lines, sep = "\n"))
+    if (verbose && nzchar(lines)) message(cat(lines, sep = "\n"))
     if (any(grepl("server running", lines, ignore.case = TRUE))) {
       if (verbose) message("Jekyll is running just fine.")
       break
