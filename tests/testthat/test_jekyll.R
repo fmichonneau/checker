@@ -7,6 +7,7 @@ has_bundle <- function() {
   else FALSE
 }
 
+context("Jekyll: only broken links are reported broken")
 if (has_bundle()) {
 
   jkyl <- withr::with_dir(
@@ -31,17 +32,15 @@ if (has_bundle()) {
     show_summary = FALSE
   )
 
-  context("Jekyll: only broken links are reported broken")
-
   test_that("functional links are functional", {
     sub_functional <- res_jekyll[grepl("functional", res_jekyll$link_text), ]
-    expect_true(all(sub_functional$valid))
+    expect_true(all(sub_functional$error_level == -1L))
   })
 
 
   test_that("broken links are broken", {
     sub_broken <- res_jekyll[grepl("broken", res_jekyll$link_text), ]
-    expect_true(all(!sub_broken$valid))
+    expect_true(all(sub_broken$error_level == 3L))
   })
 
   jkyl$kill()

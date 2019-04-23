@@ -107,7 +107,8 @@ extract_links_html  <- function(doc, root_dir) {
 
 ##' @importFrom fs file_exists
 ##' @importFrom purrr map_df
-check_local_file <- function(full_path, ...) {
+##' @importFrom dplyr if_else
+check_local_file <- function(full_path, checker_options, ...) {
   purrr::map2_df(
     fs::file_exists(full_path),
     full_path,
@@ -118,9 +119,11 @@ check_local_file <- function(full_path, ...) {
         msg <- "File exists."
       }
 
+      opt_local <- checker_options(checker_options)[["missing_local_file"]]
+
       list(
         url = .y,
-        valid = .x,
+        error_level = dplyr::if_else(.x, is_success(), opt_local),
         message = msg
       )
     })
@@ -194,22 +197,37 @@ check_url_raw <- function(full_path) {
 }
 
 
+check_url_external <- function(full_path, checker_options, ...) {
+  check_url(full_path, type = "external", checker_options, ...)
+}
+
+check_url_localhost <- function(full_path, checker_options, ...) {
+  check_url(full_path, type = "localhost", checker_options, ...)
+}
 
 ##' @importFrom purrr map_df
-check_url <- function(full_path, ...) {
+check_url <- function(full_path, type = c("external", "localhost"), checker_options, ...) {
+  type <- match.arg(type)
 
   check_url_raw(full_path) %>%
-    purrr::map_df(url_check_result, ...)
+    purrr::map_df(
+      url_check_result,
+      type,
+      checker_options = checker_options,
+      ...
+    )
 
 }
 
-check_data <- function(full_path, ...) {
+check_data <- function(full_path, checker_options, ...) {
 
   has_data_issue <- grepl("^data:text/html", full_path)
 
+  opt_data_uri <- checker_options(checker_options, ...)[["broken_data_uri"]]
+
   tibble::tibble(
     url = full_path,
-    valid = !has_data_issue,
+    error_level = dplyr::if_else(!has_data_issue, is_success(), opt_data_uri),
     message = dplyr::if_else(
       has_data_issue,
       "",
@@ -221,23 +239,28 @@ check_data <- function(full_path, ...) {
 no_check <- function(full_path, ...) {
   tibble::tibble(
     url = full_path,
-    valid = NA,
-    message = ""
+    error_level = NA_integer_,
+    message = "not checked."
   )
 }
 
 robotstxt_denied <- function(full_path, ...) {
   tibble::tibble(
     url = full_path,
-    valid = NA,
+    error_level = NA_integer_,
     message = "Can't check, denied by robots.txt."
   )
 }
 
 unknown_protocol <- function(full_path, ...) {
-  warning("Unknown protocol, for ", sQuote(full_path),
-    " please report the issue: ",
-    "https://github.com/fmichonneau/checker/issues/new")
+  tibble::tibble(
+    url = full_path,
+    error_level = 2L,
+    message = paste("Unknown protocol, for ", sQuote(full_path),
+      " please report the issue: ",
+      "https://github.com/fmichonneau/checker/issues/new"
+    )
+  )
 }
 
 extract_all_links <- function(dir, recursive, regexp, glob, root_dir, ...) {

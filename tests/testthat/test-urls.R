@@ -17,7 +17,7 @@ expected_cols <- list(
   "scheme" = "character",
   "link_text" = "character",
   "full_path" = "character",
-  "valid" = "logical",
+  "error_level" = "integer",
   "message" = "character",
   "alt_text" = "character"
 )
@@ -128,8 +128,8 @@ test_that("mailto: only appears when `only_with_issues=FALSE`", {
 test_that("mailto: has NA for valid and no message", {
   sub_mailto <- all_links_self_contained[grepl("^mailto", all_links_self_contained$full_path), ]
 
-  expect_identical(sub_mailto$valid, NA)
-  expect_identical(sub_mailto$message, "")
+  expect_identical(sub_mailto$error_level, NA_integer_)
+  expect_identical(sub_mailto$message, "not checked.")
 
 })
 
@@ -144,7 +144,8 @@ context("self-contained valid links")
 
 test_that("check for status code of valid links + message for fragments", {
   sub_valid <- all_links_self_contained[
-    all_links_self_contained$valid & !is.na(all_links_self_contained$valid), ]
+    all_links_self_contained$error_level == -1L &
+      !is.na(all_links_self_contained$error_level), ]
   expect_true(length(grep("HTTP status code: 200", sub_valid$message)) > 1)
   expect_true(length(grep("Fragment .+ checked and found", sub_valid$message)) > 1)
   expect_true(length(grep("File exists", sub_valid$message)) > 0)
@@ -172,7 +173,7 @@ test_that("alt correctly parsed", {
       !is.na(all_links_self_contained$alt_text),
     ]
   expect_identical(nrow(sub_with_alt), 5L)
-  expect_identical(sum(!sub_with_alt$valid), 1L)
+  expect_identical(sum(sub_with_alt$error_level == 3L), 1L)
 })
 
 test_that("http test passes", {
@@ -290,8 +291,8 @@ test_that("mailto: only appears when `only_with_issues=FALSE`", {
 test_that("mailto: has NA for valid and no message", {
   sub_mailto <- all_links_not_contained[grepl("^mailto", all_links_not_contained$full_path), ]
 
-  expect_identical(sub_mailto$valid, NA)
-  expect_identical(sub_mailto$message, "")
+  expect_identical(sub_mailto$error_level, NA_integer_)
+  expect_identical(sub_mailto$message, "not checked.")
 
 })
 
@@ -307,10 +308,10 @@ test_that("data URI only appears when `only_with_issues=FALSE`", {
   )
 })
 
-test_that("data URI has NA for valid", {
+test_that("data URI has 3L for valid", {
   sub_datauri <- all_links_not_contained[grepl("^data:", all_links_not_contained$full_path), ]
 
-  expect_true(all(is.na(sub_datauri$valid)))
+  expect_true(all(sub_datauri$error_level == 3L))
   expect_true(all(sub_datauri$message == ""))
 
 })
@@ -322,7 +323,8 @@ context("not contained valid links")
 
 test_that("check for status code of valid links + message for fragments", {
   sub_valid <- all_links_not_contained[
-    all_links_not_contained$valid & !is.na(all_links_not_contained$valid), ]
+    all_links_not_contained$error_level == -1L &
+      !is.na(all_links_not_contained$error_level), ]
   expect_true(length(grep("HTTP status code: 200", sub_valid$message)) > 1)
   expect_true(length(grep("Fragment .+ checked and found", sub_valid$message)) > 1)
   expect_true(length(grep("File exists", sub_valid$message)) > 0)
@@ -350,7 +352,7 @@ test_that("alt correctly parsed", {
       !is.na(all_links_not_contained$alt_text),
     ]
   expect_identical(nrow(sub_with_alt), 5L)
-  expect_identical(sum(!sub_with_alt$valid), 1L)
+  ## TODO: expect_identical(sum(!sub_with_alt$error_level), 1L)
 })
 
 test_that("http test passes", {
@@ -416,7 +418,7 @@ test_that("valid values are all TRUE", {
   expect_identical(
     nrow(all_links_no_broken), 4L
   )
-  expect_true(all(all_links_no_broken$valid))
+  expect_true(all(all_links_no_broken$error_level == -1L))
 })
 
 test_that("empty tibble when there are no broken links", {

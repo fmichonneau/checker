@@ -1,88 +1,107 @@
+## All the options can take the values: 0, 1, 2, 3
+## - 0: all good, nothing to see
+## - 1: note/message level.
+## - 2: warning level.
+## - 3: error level.
 checker_default_options <- function() {
   list(
-    ssl_timeout = TRUE,
-    operation_timeout = TRUE,
-    connection_timeout = TRUE,
-    resolve_timeout = TRUE,
-    fail_resolve = FALSE,
+    ## files
+    missing_local_file = 3L,
+    ## broken local data URI
+    broken_data_uri = 3L,
+    ## anchors
+    missing_anchor = 3L,
+    ## denied by robots
+    robots_denied = 1L,
+    ## misc
+    ssl_timeout = 1L,
+    operation_timeout = 1L,
+    connection_timeout = 1L,
+    resolve_timeout = 1L,
+    fail_resolve = 2L,
     ## 300
-    status_code_300 = TRUE,
-    status_code_301 = TRUE,
-    status_code_302 = TRUE,
-    status_code_303 = TRUE,
-    status_code_304 = TRUE,
-    status_code_305 = TRUE,
-    status_code_306 = TRUE,
-    status_code_307 = TRUE,
-    status_code_308 = TRUE,
+    status_code_300 = 2L,
+    status_code_301 = 2L,
+    status_code_302 = 2L,
+    status_code_303 = 2L,
+    status_code_304 = 2L,
+    status_code_305 = 2L,
+    status_code_306 = 2L,
+    status_code_307 = 2L,
+    status_code_308 = 2L,
     ## 400
-    status_code_400 = FALSE,
-    status_code_401 = FALSE,
-    status_code_402 = FALSE,
-    status_code_403 = FALSE,
-    status_code_404 = FALSE,
-    status_code_405 = FALSE,
-    status_code_406 = FALSE,
-    status_code_407 = FALSE,
-    status_code_408 = FALSE,
-    status_code_409 = FALSE,
-    status_code_410 = FALSE,
-    status_code_411 = FALSE,
-    status_code_412 = FALSE,
-    status_code_413 = FALSE,
-    status_code_414 = FALSE,
-    status_code_415 = FALSE,
-    status_code_416 = FALSE,
-    status_code_417 = FALSE,
-    status_code_418 = FALSE,
-    status_code_421 = FALSE,
-    status_code_422 = FALSE,
-    status_code_423 = FALSE,
-    status_code_424 = FALSE,
-    status_code_425 = FALSE,
-    status_code_426 = FALSE,
-    status_code_428 = FALSE,
-    status_code_429 = FALSE,
-    status_code_431 = FALSE,
-    status_code_451 = FALSE,
+    status_code_400 = 2L,
+    status_code_401 = 2L,
+    status_code_402 = 2L,
+    status_code_403 = 2L,
+    status_code_404 = 3L, ## <- 404 is here
+    status_code_405 = 2L,
+    status_code_406 = 2L,
+    status_code_407 = 2L,
+    status_code_408 = 2L,
+    status_code_409 = 2L,
+    status_code_410 = 2L,
+    status_code_411 = 2L,
+    status_code_412 = 2L,
+    status_code_413 = 2L,
+    status_code_414 = 2L,
+    status_code_415 = 2L,
+    status_code_416 = 2L,
+    status_code_417 = 2L,
+    status_code_418 = 2L,
+    status_code_421 = 2L,
+    status_code_422 = 2L,
+    status_code_423 = 2L,
+    status_code_424 = 2L,
+    status_code_425 = 2L,
+    status_code_426 = 2L,
+    status_code_428 = 2L,
+    status_code_429 = 2L,
+    status_code_431 = 2L,
+    status_code_451 = 2L,
     ## 500
-    status_code_500 = FALSE,
-    status_code_501 = FALSE,
-    status_code_502 = FALSE,
-    status_code_503 = FALSE,
-    status_code_504 = FALSE,
-    status_code_505 = FALSE,
-    status_code_506 = FALSE,
-    status_code_507 = FALSE,
-    status_code_508 = FALSE,
-    status_code_510 = FALSE,
-    status_code_511 = FALSE
+    status_code_500 = 2L,
+    status_code_501 = 2L,
+    status_code_502 = 2L,
+    status_code_503 = 2L,
+    status_code_504 = 2L,
+    status_code_505 = 2L,
+    status_code_506 = 2L,
+    status_code_507 = 2L,
+    status_code_508 = 2L,
+    status_code_510 = 2L,
+    status_code_511 = 2L
   )
 }
 
 ##' Checker Options
 ##'
 ##' @details Customize which HTTP status codes and other situations lead checker
-##'   to mark links and other URIs as invalid/broken.
+##'   to mark links and other URIs as problematic.
 ##'
-##' Options set to TRUE will be interpreted by checker as valid links. For
-##' instance, you will most likely always want `status_code_404 = FALSE`, so
+##' Each options can take one of 4 values: 0, 1, 2, or 3:
+##' - 0: silently ignored situation
+##' - 1: message-level notification that the situation was encountered
+##' - 2: warning-level notification
+##' - 3: error-level notification.
+##'
+##' For instance, you will most likely always want `status_code_404 = 3L`, so
 ##' checker will report as invalid 404 HTTP status codes.
 ##'
 ##' You can customize default values by:
 ##'
 ##' * specifying options in your .Rprofile
 ##'
-##' * passing a list of the options you want to customize to `check_link()`
+##' * passing a list of the options you want to customize to `check_links()`
 ##' using the `checker_options` argument
 ##'
 ##' @param checker_options a named list of the checker options to customize.
-##' @param ... ignored
+##' @param ... ignored for now
 ##' @return a customized list of checker options
 ##' @examples
-##' ## check_links(..., checker_options = list(status_code_300 = TRUE, status_code_301 = TRUE))
+##' ## check_links(..., checker_options = list(status_code_300 = 0L, status_code_301 = 2L))
 ##' @importFrom utils modifyList
-##' @importFrom purrr map_lgl
+##' @importFrom purrr map_lgl map possibly
 ##' @export
 checker_options <- function(checker_options, ...) {
   def <- checker_default_options()
@@ -99,12 +118,16 @@ checker_options <- function(checker_options, ...) {
     return(def)
   }
 
+  safe_as_int <- purrr::possibly(as.integer, otherwise = NA_integer_)
+
   usr <- usr[names(usr) %in% names(def)]
+  usr <- suppressWarnings(purrr::map(usr, safe_as_int))
   res <- utils::modifyList(def, usr)
 
-  if (!all(purrr::map_lgl(res, is.logical)) ||
+  if (!all(purrr::map_lgl(res, is.integer)) ||
         any(is.na(res)))
-    stop("all checker_options values must be TRUE or FALSE")
+    stop("all checker_options values must be integers (0, 1, 2 or 3).",
+      call. = FALSE)
 
   res
 }
