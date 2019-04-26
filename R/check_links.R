@@ -29,6 +29,7 @@ extract_links_html  <- function(doc, root_dir) {
   ## extract the text (if applicable) that is marked up
   link_text <- all_links %>%
     xml2::xml_text()
+  link_text <- gsub("\\r?\\n|\\r", " ", link_text)
 
   ## extract the alt text (only applicable to images)
   alt_text <- all_links %>%
