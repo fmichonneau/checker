@@ -7,9 +7,13 @@ extract_links_html  <- function(doc, root_dir) {
 
   base_path <- dirname(doc)
 
+  browser()
   ## find all tags that have "href" or "src" attribute
   all_links <- xml2::read_html(doc) %>%
-    xml2::xml_find_all(".//*[@href] | .//*[@src]")
+    xml2::xml_find_all(
+      ".//*[@href][not(ancestor-or-self::*[@checker-ignore])] |
+       .//*[@src][not(ancestor-or-self::*[@checker-ignore])]"
+    )
 
   ## extract the tag type
   tag_type <- all_links %>%
@@ -18,7 +22,9 @@ extract_links_html  <- function(doc, root_dir) {
 
   ## extract the target for the "href" or "src" attribute
   link_targets <- all_links %>%
-    xml2::xml_find_all(".//@href | .//@src") %>%
+    xml2::xml_find_all(
+      ".//@href[not(ancestor-or-self::*[@checker-ignore])] |
+       .//@src[not(ancestor-or-self::*[@checker-ignore])]") %>%
     xml2::xml_text()
 
   ## extract the text (if applicable) that is marked up
