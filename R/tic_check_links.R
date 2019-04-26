@@ -42,6 +42,9 @@ check_jekyll_links <- function(site_root = ".",
       if (verbose) message("Jekyll is running just fine.")
       break
     }
+    if (any(grepl("error", lines, ignore.case = TRUE))) {
+      stop("Jekyll error: ", lines, call. = FALSE)
+    }
   }
 
   on.exit(jkyl$kill(), add = TRUE)
