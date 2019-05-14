@@ -14,7 +14,7 @@
 ##' provided by the external servers. Thus some URLs might not be checked.
 ##'
 ##' @param dir The directory to look for documents
-##' @param recursive Should sub-folders be searched for documents? (default
+##' @param recurse Should sub-folders be searched for documents? (default
 ##'   `TRUE`).
 ##' @param regexp A regular expression matching the names of the files to check.
 ##' @param glob A wildcard pattern matching the names of the files to check.
@@ -54,7 +54,7 @@
 ##' @importFrom dplyr distinct mutate group_by case_when left_join select filter
 ##' @importFrom tidyr nest unnest
 ##' @export
-check_links <- function(dir = ".", recursive = TRUE,
+check_links <- function(dir = ".", recurse = TRUE,
                         regexp = "\\.html?$", glob = NULL,
                         root_dir = dir,
                         ignore_pattern = NULL,
@@ -85,7 +85,7 @@ check_links <- function(dir = ".", recursive = TRUE,
     root_dir <- paste0(root_dir, "/")
   }
 
-  links <- extract_all_links(dir = dir, recursive = recursive,
+  links <- extract_all_links(dir = dir, recurse = recurse,
     regexp = regexp, glob = glob, root_dir = root_dir, ...) %>%
     filter_ignore_pattern(ignore_pattern) %>%
     filter_ignore_tag(ignore_tag) %>%

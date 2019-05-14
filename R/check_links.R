@@ -269,11 +269,11 @@ unknown_protocol <- function(full_path, ...) {
   )
 }
 
-extract_all_links <- function(dir, recursive, regexp, glob, root_dir, ...) {
+extract_all_links <- function(dir, recurse, regexp, glob, root_dir, ...) {
 
   list_files <- fs::dir_ls(
     path = dir,
-    recursive = recursive,
+    recurse = recurse,
     regexp = regexp,
     glob = glob,
     ...
