@@ -4,7 +4,7 @@
 \alias{check_links}
 \title{Check links in your documents}
 \usage{
-check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
+check_links(dir = ".", recurse = TRUE, regexp = "\\\\.html?$",
   glob = NULL, root_dir = dir, ignore_pattern = NULL,
   ignore_tag = NULL, check_external = TRUE, only_with_issues = TRUE,
   raise = c("ok", "warning", "error"), by = c("page", "resource"),
@@ -13,7 +13,7 @@ check_links(dir = ".", recursive = TRUE, regexp = "\\\\.html?$",
 \arguments{
 \item{dir}{The directory to look for documents}
 
-\item{recursive}{Should sub-folders be searched for documents? (default
+\item{recurse}{Should sub-folders be searched for documents? (default
 `TRUE`).}
 
 \item{regexp}{A regular expression matching the names of the files to check.}
