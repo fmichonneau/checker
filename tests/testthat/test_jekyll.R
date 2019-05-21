@@ -10,9 +10,15 @@ has_bundle <- function() {
 context("Jekyll: only broken links are reported broken")
 if (has_bundle()) {
 
+  bundle_update <- "update"
+
+  if (!identical(Sys.getenv("TRAVIS"), "true")) {
+    bundle_update <- c(bundle_update, "--local")
+  }
+
   jkyl <- withr::with_dir(
     "jekyll_site/testsite/", {
-      processx::run("bundle", c("update", "--local"))
+      processx::run("bundle", bundle_update)
       processx::process$new(
         "bundle",
         c("exec", "jekyll", "serve", "--port", "4001"),
