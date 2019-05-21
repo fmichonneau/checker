@@ -12,7 +12,7 @@ if (has_bundle()) {
 
   jkyl <- withr::with_dir(
     "jekyll_site/testsite/", {
-      processx::run("bundle", "update")
+      processx::run("bundle", c("update", "--local"))
       processx::process$new(
         "bundle",
         c("exec", "jekyll", "serve", "--port", "4001"),
