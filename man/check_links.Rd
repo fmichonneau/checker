@@ -7,8 +7,8 @@
 check_links(dir = ".", recurse = TRUE, regexp = "\\\\.html?$",
   glob = NULL, root_dir = dir, ignore_pattern = NULL,
   ignore_tag = NULL, check_external = TRUE, only_with_issues = TRUE,
-  raise = c("ok", "warning", "error"), by = c("page", "resource"),
-  show_summary = TRUE, checker_options = NULL, ...)
+  by = c("page", "resource"), show_summary = TRUE,
+  checker_options = NULL, stop_on_error = FALSE, ...)
 }
 \arguments{
 \item{dir}{The directory to look for documents}
@@ -36,15 +36,17 @@ local links will be checked.}
 \item{only_with_issues}{Should the results include only the broken links
 (default) or also the valid links?}
 
-\item{raise}{If set to `warning` or `error`, the function will raise a
-warning or an error if broken links are found.}
-
 \item{by}{How should the results of the checks be aggregated?}
 
-\item{show_summary}{Should a summary of the results be printed?}
+\item{show_summary}{Should a list of all problematic links be displayed?}
 
 \item{checker_options}{An optional list that specifies which situations
 checker should consider invalid. See \code{\link{checker_options}}.}
+
+\item{stop_on_error}{When errors are thrown, should the call be interrupted?
+If `FALSE`, the error is displayed as a message on the terminal and the
+resuulting object is returned. If `TRUE`, an error is thrown and the
+function call is stopped.}
 
 \item{...}{additional parameters to be passed to `grep` to match the file
 names to check.}
@@ -65,7 +67,7 @@ displayed. Using \code{page} is typically more convenient for small sites,
 while \code{resource} works better for larger websites that use templates
 are more likely to have mispecified resources across many pages.
 
-`checker` attempts to respect the rules specified by the robots.txt files
+`checker` attempts to respect the rules specified by the `robots.txt` files
 provided by the external servers. Thus some URLs might not be checked.
 
 ## Ignore pattern
