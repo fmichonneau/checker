@@ -27,7 +27,7 @@ if (has_bundle()) {
   res_jekyll <- check_links(
     "jekyll_site/testsite/_site",
     root_dir = "http://localhost:4001",
-    recursive= TRUE,
+    recurse = TRUE,
     only_with_issues = FALSE,
     show_summary = FALSE
   )
