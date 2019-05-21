@@ -242,26 +242,26 @@ check_data <- function(full_path, checker_options, ...) {
   )
 }
 
-no_check <- function(full_path, ...) {
+no_check <- function(full_path, checker_options, ...) {
   tibble::tibble(
     url = full_path,
-    error_level = NA_integer_,
+    error_level = checker_options(checker_options)[["not_checked"]],
     message = "not checked."
   )
 }
 
-robotstxt_denied <- function(full_path, ...) {
+robotstxt_denied <- function(full_path, checker_options, ...) {
   tibble::tibble(
     url = full_path,
-    error_level = NA_integer_,
+    error_level = checker_options(checker_options)[["robots_denied"]],
     message = "Can't check, denied by robots.txt."
   )
 }
 
-unknown_protocol <- function(full_path, ...) {
+unsupported_protocol <- function(full_path, checker_options, ...) {
   tibble::tibble(
     url = full_path,
-    error_level = 2L,
+    error_level = checker_options(checker_options)[["unsupported_protocol"]],
     message = paste("Unknown protocol, for ", sQuote(full_path),
       " please report the issue: ",
       "https://github.com/fmichonneau/checker/issues/new"

@@ -1,102 +1,126 @@
 generic_msg <- function(.dt = NULL,
-                        msg, type = c("note", "warning", "error", "ok"),
-                        indent = 0, ...) {
+                        msg,
+                        type = c(
+                          "success", "ok", "message", "warning", "error"
+                        ),
+                        indent = 0, raise = FALSE,
+                        prefix = NULL,
+                        show_icon = TRUE, ...) {
 
   type <- match.arg(type)
+  if (is.null(prefix)) {
+    prefix <- character(0)
+  }
 
-  icon <- switch(type,
-                 "note" = cli::symbol$star,
-                 "warning" = cli::symbol$warning,
-                 "error" = cli::symbol$cross,
-                 "ok" = cli::symbol$tick)
+  if (show_icon) {
+    icon <- switch(
+      type,
+      "success" = cli::symbol$tick,
+      "ok" = character(0),
+      "message" = cli::symbol$star,
+      "warning" = cli::symbol$warning,
+      "error" = cli::symbol$cross
+    )
+  } else {
+    icon <- character(0)
+  }
 
-  col <- switch(type,
-                "note" = crayon::blue,
-                "warning" = crayon::yellow,
-                "error" = crayon::red,
-                "ok" = crayon::green)
+  col <- switch(
+    type,
+    "success" = crayon::green,
+    "ok" = cat,
+    "message" = crayon::blue,
+    "warning" = crayon::yellow,
+    "error" = crayon::red
+  )
 
-  cat(col(
-    crayon::bold(
-      paste(rep(" ", indent), collapse = ""),
-      icon, msg
-    )))
+  if (raise) {
+    f <- switch(
+      type,
+      "success" = "cat",
+      "ok" = "cat",
+      "message" = "message",
+      "warning" = "warning",
+      "error" = "stop"
+    )
+  } else {
+    f  <- "cat"
+  }
 
+  cat_args <- list(
+    col(
+      crayon::bold(
+        paste0(
+          prefix,
+          paste(rep(" ", indent), collapse = ""),
+          icon, " ", msg
+        ))
+    )
+  )
+
+  if (identical(f, "stop")) {
+    extra_args <- c(call. = list(FALSE))
+  } else if (identical(f, "warning")) {
+    extra_args <- c(
+      call. = list(FALSE),
+      immediate. = list(TRUE)
+    )
+  } else {
+    extra_args <- NULL
+  }
+
+  cat_args <- c(cat_args, extra_args)
+
+  rlang::exec(f, !!!cat_args)
   invisible(.dt)
 
 }
 
 
-##' @importFrom crayon red blue
-##' @importFrom cli symbol
+##' @importFrom purrr iwalk
 summary_check_links <- function(.dt, by) {
 
-  n_broken <- get_n_broken(.dt)
-  n_valid <- get_n_valid(.dt)
+  n_valid <- get_n_success(.dt)
 
-  if (identical(n_valid, nrow(.dt))) {
-    generic_msg(msg = "No broken links found.\n",
-      type = "ok")
+  ## only valid links, we can stop early
+  ## NOTE: this might be problematic for links flagged "ok".
+  if (identical(nrow(.dt), n_valid)) {
+    generic_msg(
+      msg = "No broken links found.\n",
+      type = "success"
+    )
     return(.dt)
   }
 
-  page_output <- function(x) {
-    x %>%
-      purrr::walk(
-        function(.x) {
-          cat(
-            crayon::blue(
-              paste("  ", cli::symbol$bullet, " in `",
-                crayon::underline(unique(.x$file)), "`\n",
-                sep = "")))
-          purrr::pwalk(.x,
-            function(file, link, link_text, full_path, message, ...) {
-              if (nchar(link_text) > 0) {
-                txt <- paste0("      text: ", dQuote(link_text), "\n")
-              } else {
-                txt <- character(0)
-              }
-              cat(paste0(
-                "    - link: `", link, "`\n",
-                txt,
-                "      message: ", sQuote(message), "\n"))
-            })
-        }
-      )
-  }
 
-  resource_output <- function(x) {
-    x %>%
-      purrr::walk(
-        function(.x) {
-          .rsrc <- unique(.x$link)
-          .msg <- unique(.x$message)
-          cat(
-            crayon::blue(
-              paste0("  ", cli::symbol$bullet,
-                " Resource: `", crayon::underline(.rsrc), "`\n",
-                "    Message: ", sQuote(.msg), "\n")
-            ),
-            sep = ""
-          )
-          cat("    Found in:\n")
-          cat(
-            paste0(
-              "    - ", .x$file, "\n"
-            ),
-            sep = ""
-          )
-        }
-      )
-  }
+  split_dt <- split(.dt, .dt$error_level)
 
-  .dt_broken <- .dt %>%
-    dplyr::filter(.data$error_level > 0L)
+  possible_error_level <- c("success", checker_valid_options())
+
+  split_dt <- split_dt[intersect(possible_error_level, names(split_dt))]
+
+  purrr::iwalk(
+    split_dt,
+    function(.x, .y) {
+      internal_summary_check_links(.dt = .x, type = .y, by = by)
+    }
+  )
+
+  invisible(.dt)
+}
+
+
+
+
+##' @importFrom cli symbol
+##' @importFrom purrr keep
+##' @importFrom dplyr filter
+internal_summary_check_links <- function(.dt, type, by) {
 
   out <- switch(by,
-    page = split(.dt_broken, .dt_broken$file),
-    resource = split(.dt_broken,
-      list(.dt_broken$link, .dt_broken$message)) %>%
+    page = split(.dt, .dt$file),
+    resource = split(.dt,
+      list(.dt$link, .dt$message)) %>%
       purrr::keep(~ nrow(.) > 0)
   )
 
@@ -106,13 +130,70 @@ summary_check_links <- function(.dt, by) {
   )
 
   out %>%
-    generic_msg(
-      msg = paste(n_broken, "broken links found:\n"),
-      type = "error"
-    ) %>%
-    display
+      generic_msg(
+        msg = paste(nrow(.dt), sQuote(type), "found:\n"),
+        type = type
+      ) %>%
+    display()
 
   invisible(.dt)
+}
+
+
+##' @importFrom purrr walk pwalk
+##' @importFrom crayon cyan underline
+##' @importFrom cli symbol
+page_output <- function(.dt) {
+  .dt %>%
+    purrr::walk(
+      function(.x) {
+        cat(
+          crayon::cyan(
+            paste("  ", cli::symbol$bullet, " in `",
+              crayon::underline(unique(.x$file)), "`\n",
+              sep = "")))
+        purrr::pwalk(.x,
+          function(file, link, link_text, full_path, message, ...) {
+            if (nchar(link_text) > 0) {
+              txt <- paste0("      text: ", dQuote(link_text), "\n")
+            } else {
+              txt <- character(0)
+            }
+            cat(paste0(
+              "    - link: `", link, "`\n",
+              txt,
+              "      message: ", sQuote(message), "\n"))
+          })
+      }
+    )
+}
+
+##' @importFrom purrr walk
+##' @importFrom crayon cyan underline
+##' @importFrom cli symbol
+resource_output <- function(.dt) {
+  .dt %>%
+    purrr::walk(
+      function(.x) {
+        .rsrc <- unique(.x$link)
+        .msg <- unique(.x$message)
+        cat(
+          crayon::cyan(
+            paste0("  ", cli::symbol$bullet,
+              " Resource: `", crayon::underline(.rsrc), "`\n",
+              "    Message: ", sQuote(.msg), "\n")
+          ),
+          sep = ""
+        )
+        cat("    Found in:\n")
+        cat(
+          paste0(
+            "    - ", .x$file, "\n"
+          ),
+          sep = ""
+        )
+      }
+    )
 }
 
 

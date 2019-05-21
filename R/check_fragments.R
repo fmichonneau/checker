@@ -25,7 +25,9 @@ check_fragments_raw <- function(.dt, checker_options, ...) {
       if (inherits(doc_xml, "try-error")) {
         return(
           tibble::tibble(
-            error_level = NA_integer_,
+            error_level = checker_options(
+              checker_options
+            )["html_parsing_failure"],
             message = sprintf("Couldn't parse '%s': %s",
               full_path, doc_xml)
           )

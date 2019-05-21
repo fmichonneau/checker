@@ -9,7 +9,7 @@ test_that("data-checker-ignore works", {
     only_with_issues = FALSE
   )
 
-  expect_true(all(res_ignore_attr$error_level == -1L))
+  expect_true(all(res_ignore_attr$error_level == "success"))
   expect_true(all(!grepl("should be ignored",
     res_ignore_attr$link_text, ignore.case = TRUE)))
 })

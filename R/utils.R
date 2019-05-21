@@ -1,27 +1,3 @@
-broken_link_assertion <- function(.dt) {
-  .dt$error_level == 3L
-}
-
-has_issues_assertion <- function(.dt) {
-  broken_link_assertion(.dt) |
-    (.dt$tag_type == "img" & is.na(.dt$alt_text)) |
-    (.dt$tag_type == "img" & .dt$scheme == "http")
-}
-
-get_n_issues <- function(.dt) {
-  sum(has_issues_assertion(.dt), na.rm = TRUE)
-}
-
-
-get_n_broken <- function(.dt) {
-  sum(broken_link_assertion(.dt), na.rm = TRUE)
-}
-
-get_n_valid <- function(.dt) {
-  sum(!broken_link_assertion(.dt), na.rm = TRUE)
-}
-
-
 convert_data_uri <- function(data_uri) {
   paste0(substr(data_uri, 1, 100), "...")
 }
@@ -37,19 +13,6 @@ get_uri_type <- function(scheme, server, ...) {
   )
 }
 
-
-handle_raise <- function(out, raise) {
-
-  msg <- "Broken links found."
-
-  if (get_n_broken(out) > 0) {
-    switch(raise,
-      ok = NULL,
-      warning = warning(msg, call. = FALSE),
-      error = stop(msg, call. = FALSE))
-  }
-}
-
 ##' @importFrom fs is_dir
 assert_dir <- function(dir) {
   if (!identical(length(dir), 1L))
@@ -60,8 +23,8 @@ assert_dir <- function(dir) {
 
 
 ### semantically meaninful functions to deal with error codes
-is_error <- function() return(3L)
-is_warning <- function() return(2L)
-is_message <- function() return(1L)
-is_silent <- function() return(0L)
-is_success <- function() return(-1L)
+is_error <- function() return("error")
+is_warning <- function() return("warning")
+is_message <- function() return("message")
+is_silent <- function() return("ok")
+is_success <- function() return("success")

@@ -17,7 +17,7 @@ expected_cols <- list(
   "scheme" = "character",
   "link_text" = "character",
   "full_path" = "character",
-  "error_level" = "integer",
+  "error_level" = "character",
   "message" = "character",
   "alt_text" = "character"
 )
@@ -30,17 +30,24 @@ out_self_contained <- build_html_page(
   "test_self_contained.html",
   self_contained = TRUE)
 
-all_links_self_contained <- check_links(
-  dir = dirname(out_self_contained),
-  regexp = "test_self_contained.html",
-  only_with_issues = FALSE,
-  show_summary = FALSE)
+expect_message(
+  all_links_self_contained <- check_links(
+    dir = dirname(out_self_contained),
+    regexp = "test_self_contained.html",
+    only_with_issues = FALSE,
+    show_summary = FALSE),
+  regexp = "^Error"
+)
 
-with_issues_self_contained <- check_links(
-  dir = dirname(out_self_contained),
-  regexp = "test_self_contained.html",
-  only_with_issues = TRUE,
-  show_summary = FALSE)
+expect_message(
+  with_issues_self_contained <- check_links(
+    dir = dirname(out_self_contained),
+    regexp = "test_self_contained.html",
+    only_with_issues = TRUE,
+    show_summary = FALSE),
+  regexp = "^Error"
+)
+
 
 test_that("output has correct format for self-contained", {
   expect_true(inherits(all_links_self_contained, "tbl_df"))
@@ -48,15 +55,14 @@ test_that("output has correct format for self-contained", {
   expect_identical(lapply(all_links_self_contained, class), expected_cols)
   expect_identical(lapply(with_issues_self_contained, class), expected_cols)
   expect_identical(nrow(all_links_self_contained), 26L)
-  expect_identical(nrow(with_issues_self_contained), get_n_issues(with_issues_self_contained))
   expect_true(nrow(with_issues_self_contained) >= 4)
 })
 
 test_that("404 are working", {
-    links_404  <- all_links_self_contained[all_links_self_contained$link_text == "404", ]
-    expect_identical(nrow(links_404), 1L)
-    expect_identical("HTTP status code: 404", unique(links_404$message))
-  })
+  links_404  <- all_links_self_contained[all_links_self_contained$link_text == "404", ]
+  expect_identical(nrow(links_404), 1L)
+  expect_identical("HTTP status code: 404", unique(links_404$message))
+})
 
 test_that("internal links are working as expected", {
   expect_false("valid" %in% with_issues_self_contained$link_text)
@@ -100,7 +106,6 @@ test_that("external links with fragments", {
   expect_identical(nrow(sub_links_invalid), 1L)
   expect_identical(nrow(sub_with_issues_invalid), 1L)
 
-
 })
 
 test_that("local links with fragments for file that doesn't exist", {
@@ -120,15 +125,32 @@ test_that("local links with fragments for file that doesn't exist", {
 context("self-contained dealing with mailto:")
 test_that("mailto: only appears when `only_with_issues=FALSE`", {
   expect_identical(
-    length(grep("^mailto:", all_links_self_contained$full_path)), 1L)
+    length(grep("^mailto:", all_links_self_contained$full_path)),
+    1L
+  )
   expect_identical(
-    length(grep("^mailto:", with_issues_self_contained$full_path)), 0L)
+    all_links_self_contained$error_level[
+      grepl("^mailto:", all_links_self_contained$full_path)
+    ],
+    "ok"
+  )
+  expect_identical(
+    length(grep("^mailto:", with_issues_self_contained$full_path)), 1L
+  )
+  expect_identical(
+    with_issues_self_contained$error_level[
+      grepl("^mailto:", with_issues_self_contained$full_path)
+    ],
+    "ok"
+  )
 })
 
-test_that("mailto: has NA for valid and no message", {
-  sub_mailto <- all_links_self_contained[grepl("^mailto", all_links_self_contained$full_path), ]
+test_that("mailto: has 'ok' for error-level and 'not checked' as message", {
+  sub_mailto <- all_links_self_contained[
+    grepl("^mailto", all_links_self_contained$full_path),
+    ]
 
-  expect_identical(sub_mailto$error_level, NA_integer_)
+  expect_identical(sub_mailto$error_level, "ok")
   expect_identical(sub_mailto$message, "not checked.")
 
 })
@@ -144,7 +166,7 @@ context("self-contained valid links")
 
 test_that("check for status code of valid links + message for fragments", {
   sub_valid <- all_links_self_contained[
-    all_links_self_contained$error_level == -1L &
+    all_links_self_contained$error_level == "success" &
       !is.na(all_links_self_contained$error_level), ]
   expect_true(length(grep("HTTP status code: 200", sub_valid$message)) > 1)
   expect_true(length(grep("Fragment .+ checked and found", sub_valid$message)) > 1)
@@ -173,7 +195,7 @@ test_that("alt correctly parsed", {
       !is.na(all_links_self_contained$alt_text),
     ]
   expect_identical(nrow(sub_with_alt), 5L)
-  expect_identical(sum(sub_with_alt$error_level == 3L), 1L)
+  expect_identical(sum(sub_with_alt$error_level == "error"), 1L)
 })
 
 test_that("http test passes", {
@@ -193,17 +215,24 @@ out_not_contained <- build_html_page(
   "test_not_contained.html",
   self_contained = FALSE)
 
-all_links_not_contained <- check_links(
-  dir = dirname(out_not_contained),
-  regexp = "test_not_contained.html",
-  only_with_issues = FALSE,
-  show_summary = FALSE)
+expect_message({
+  all_links_not_contained <- check_links(
+    dir = dirname(out_not_contained),
+    regexp = "test_not_contained.html",
+    only_with_issues = FALSE,
+    show_summary = FALSE
+  )},
+  regexp = "^Error:"
+)
 
-with_issues_not_contained <- check_links(
-  dir = dirname(out_not_contained),
-  regexp = "test_not_contained.html",
-  only_with_issues = TRUE,
-  show_summary = FALSE)
+expect_message(
+  with_issues_not_contained <- check_links(
+    dir = dirname(out_not_contained),
+    regexp = "test_not_contained.html",
+    only_with_issues = TRUE,
+    show_summary = FALSE),
+  regexp = "^Error:"
+)
 
 test_that("output has correct format for not contained", {
   expect_true(inherits(all_links_not_contained, "tbl_df"))
@@ -211,7 +240,6 @@ test_that("output has correct format for not contained", {
   expect_identical(lapply(all_links_not_contained, class), expected_cols)
   expect_identical(lapply(with_issues_not_contained, class), expected_cols)
   expect_identical(nrow(all_links_not_contained), 33L)
-  expect_identical(nrow(with_issues_not_contained), get_n_issues(with_issues_not_contained))
   expect_true(nrow(with_issues_not_contained) >= 4)
 })
 
@@ -285,13 +313,13 @@ test_that("mailto: only appears when `only_with_issues=FALSE`", {
   expect_identical(
     length(grep("^mailto:", all_links_not_contained$full_path)), 1L)
   expect_identical(
-    length(grep("^mailto:", with_issues_not_contained$full_path)), 0L)
+    length(grep("^mailto:", with_issues_not_contained$full_path)), 1L)
 })
 
 test_that("mailto: has NA for valid and no message", {
   sub_mailto <- all_links_not_contained[grepl("^mailto", all_links_not_contained$full_path), ]
 
-  expect_identical(sub_mailto$error_level, NA_integer_)
+  expect_identical(sub_mailto$error_level, "ok")
   expect_identical(sub_mailto$message, "not checked.")
 
 })
@@ -323,7 +351,7 @@ context("not contained valid links")
 
 test_that("check for status code of valid links + message for fragments", {
   sub_valid <- all_links_not_contained[
-    all_links_not_contained$error_level == -1L &
+    all_links_not_contained$error_level == "success" &
       !is.na(all_links_not_contained$error_level), ]
   expect_true(length(grep("HTTP status code: 200", sub_valid$message)) > 1)
   expect_true(length(grep("Fragment .+ checked and found", sub_valid$message)) > 1)
@@ -418,7 +446,7 @@ test_that("valid values are all TRUE", {
   expect_identical(
     nrow(all_links_no_broken), 4L
   )
-  expect_true(all(all_links_no_broken$error_level == -1L))
+  expect_true(all(all_links_no_broken$error_level == "success"))
 })
 
 test_that("empty tibble when there are no broken links", {
@@ -481,155 +509,12 @@ test_that("regexp and glob give the same result", {
 })
 
 
-##### --------------------------------------------------------------------------
-##### Check raise levels
-##### --------------------------------------------------------------------------
-
-quick_broken_file <- file.path("html_files", "quick_broken.html")
-
-context("check raise level = OK")
-
-test_that("check raise level = OK with no broken links", {
-  expect_silent(
-    all_links_no_broken <- check_links(
-      dir = dirname(no_broken_file),
-      regexp = no_broken_file,
-      only_with_issues = FALSE,
-      show_summary = FALSE,
-      raise = "ok"
-    )
-  )
-
-  expect_silent(
-    with_issues_no_broken <- check_links(
-      dir = dirname(no_broken_file),
-      regexp = no_broken_file,
-      only_with_issues = TRUE,
-      show_summary = FALSE,
-      raise = "ok"
-    )
-  )
-})
-
-test_that("check raise level = OK with broken links", {
-  expect_silent(
-    all_links_quick_broken <- check_links(
-      dir = dirname(quick_broken_file),
-      regexp = quick_broken_file,
-      only_with_issues = FALSE,
-      show_summary = FALSE,
-      raise = "ok"
-    )
-  )
-
-  expect_silent(
-    with_issues_quick_broken <- check_links(
-      dir = dirname(quick_broken_file),
-      regexp = quick_broken_file,
-      only_with_issues = TRUE,
-      show_summary = FALSE,
-      raise = "ok"
-    )
-  )
-})
-
-context("check raise level = warning")
-
-test_that("check raise level = warning with no broken links", {
-  expect_silent(
-    all_links_no_broken <- check_links(
-      dir = dirname(no_broken_file),
-      regexp = no_broken_file,
-      only_with_issues = FALSE,
-      show_summary = FALSE,
-      raise = "warning"
-    )
-  )
-
-  expect_silent(
-    with_issues_no_broken <- check_links(
-      dir = dirname(no_broken_file),
-      regexp = no_broken_file,
-      only_with_issues = TRUE,
-      show_summary = FALSE,
-      raise = "warning"
-    )
-  )
-})
-
-test_that("check raise level = warning with broken links", {
-  expect_warning(
-    all_links_quick_broken <- check_links(
-      dir = dirname(quick_broken_file),
-      regexp = quick_broken_file,
-      only_with_issues = FALSE,
-      show_summary = FALSE,
-      raise = "warning"
-    )
-  )
-
-  expect_warning(
-    with_issues_quick_broken <- check_links(
-      dir = dirname(quick_broken_file),
-      regexp = quick_broken_file,
-      only_with_issues = TRUE,
-      show_summary = FALSE,
-      raise = "warning"
-    )
-  )
-})
-
-
-context("check raise level = error")
-
-test_that("check raise level = error with no broken links", {
-  expect_silent(
-    all_links_no_broken <- check_links(
-      dir = dirname(no_broken_file),
-      regexp = no_broken_file,
-      only_with_issues = FALSE,
-      show_summary = FALSE,
-      raise = "error"
-    )
-  )
-
-  expect_silent(
-    with_issues_no_broken <- check_links(
-      dir = dirname(no_broken_file),
-      regexp = no_broken_file,
-      only_with_issues = TRUE,
-      show_summary = FALSE,
-      raise = "error"
-    )
-  )
-})
-
-test_that("check raise level = error with broken links", {
-  expect_error(
-    all_links_quick_broken <- check_links(
-      dir = dirname(quick_broken_file),
-      regexp = quick_broken_file,
-      only_with_issues = FALSE,
-      show_summary = FALSE,
-      raise = "error"
-    )
-  )
-
-  expect_error(
-    with_issues_quick_broken <- check_links(
-      dir = dirname(quick_broken_file),
-      regexp = quick_broken_file,
-      only_with_issues = TRUE,
-      show_summary = FALSE,
-      raise = "error"
-    )
-  )
-})
-
 
 ##### --------------------------------------------------------------------------
 ##### Test different types of outputs
 ##### --------------------------------------------------------------------------
+
+quick_broken_file <- file.path("html_files", "quick_broken.html")
 
 context("check different types of output")
 
@@ -639,8 +524,7 @@ test_that("output with no broken links", {
       dir = dirname(no_broken_file),
       regexp = no_broken_file,
       only_with_issues = FALSE,
-      show_summary = TRUE,
-      raise = "ok"
+      show_summary = TRUE
     ),
     "No broken links found"
   )
@@ -650,8 +534,7 @@ test_that("output with no broken links", {
       dir = dirname(no_broken_file),
       regexp = no_broken_file,
       only_with_issues = TRUE,
-      show_summary = TRUE,
-      raise = "ok"
+      show_summary = TRUE
     ),
     "No broken links found"
   )
@@ -663,8 +546,7 @@ test_that("output with broken links (by page)", {
       dir = dirname(quick_broken_file),
       regexp = quick_broken_file,
       only_with_issues = FALSE,
-      show_summary = TRUE,
-      raise = "ok"
+      show_summary = TRUE
     ),
     "link: `no_file.html`"
   )
@@ -674,8 +556,8 @@ test_that("output with broken links (by page)", {
       dir = dirname(quick_broken_file),
       regexp = quick_broken_file,
       only_with_issues = TRUE,
-      show_summary = TRUE,
-      raise = "ok"),
+      show_summary = TRUE
+    ),
     "link: `no_file.html`"
   )
 })
@@ -688,7 +570,6 @@ test_that("output with broken links (by resource)", {
       regexp = quick_broken_file,
       only_with_issues = FALSE,
       show_summary = TRUE,
-      raise = "ok",
       by = "resource"
     ),
     "Resource: `no_file.html`"
@@ -700,7 +581,6 @@ test_that("output with broken links (by resource)", {
       regexp = quick_broken_file,
       only_with_issues = TRUE,
       show_summary = TRUE,
-      raise = "ok",
       by = "resource"),
     "Resource: `no_file.html`"
   )
@@ -710,41 +590,56 @@ test_that("output with broken links (by resource)", {
 #### Test for ignores
 #### ---------------------------------------------------------------------------
 
-ign_pattern_1 <- check_links(dirname(out_self_contained),
-  regexp = "test_self_contained.html",
+expect_message(
+  ign_pattern_1 <- check_links(dirname(out_self_contained),
+    regexp = "test_self_contained.html",
   ignore_pattern = c("^mailto:"),
   only_with_issues = FALSE, show_summary = FALSE)
+)
 
-ign_pattern_2 <- check_links(dirname(out_self_contained),
-  regexp = "test_self_contained.html",
-  ignore_pattern = c("^mailto:", "^data"),
-  only_with_issues = FALSE, show_summary = FALSE)
+expect_message(
+  ign_pattern_2 <- check_links(dirname(out_self_contained),
+    regexp = "test_self_contained.html",
+    ignore_pattern = c("^mailto:", "^data"),
+    only_with_issues = FALSE, show_summary = FALSE)
+)
 
-ign_pattern_foo <- check_links(dirname(out_self_contained),
-  regexp = "test_self_contained.html",
-  ignore_pattern = c("semi_random_string_not_found_in_file"),
-  only_with_issues = FALSE, show_summary = FALSE)
+expect_message(
+  ign_pattern_foo <- check_links(dirname(out_self_contained),
+    regexp = "test_self_contained.html",
+    ignore_pattern = c("semi_random_string_not_found_in_file"),
+    only_with_issues = FALSE, show_summary = FALSE)
+)
 
-ign_tag_1 <- check_links(dirname(out_self_contained),
-  regexp = "test_self_contained.html",
-  ignore_tag = "a",
-  only_with_issues = FALSE, show_summary = FALSE)
+expect_message(
+  ign_tag_1 <- check_links(dirname(out_self_contained),
+    regexp = "test_self_contained.html",
+    ignore_tag = "a",
+    only_with_issues = FALSE, show_summary = FALSE)
+)
 
-ign_tag_2 <- check_links(dirname(out_self_contained),
-  regexp = "test_self_contained.html",
-  ignore_tag = c("a", "script"),
-  only_with_issues = FALSE, show_summary = FALSE)
+expect_message(
+  ign_tag_2 <- check_links(dirname(out_self_contained),
+    regexp = "test_self_contained.html",
+    ignore_tag = c("a", "script"),
+    only_with_issues = FALSE, show_summary = FALSE)
+)
 
-ign_tag_foo <- check_links(dirname(out_self_contained),
-  regexp = "test_self_contained.html",
-  ignore_tag = "foo",
-  only_with_issues = FALSE, show_summary = FALSE)
+expect_message(
+  ign_tag_foo <- check_links(dirname(out_self_contained),
+    regexp = "test_self_contained.html",
+    ignore_tag = "foo",
+    only_with_issues = FALSE, show_summary = FALSE)
+)
 
-ign_pat_tag <- check_links(dirname(out_self_contained),
-  regexp = "test_self_contained.html",
-  ignore_pattern = "^data:",
-  ignore_tag = c("a", "script"),
-  only_with_issues = FALSE, show_summary = FALSE)
+expect_silent(
+  ign_pat_tag <- check_links(dirname(out_self_contained),
+    regexp = "test_self_contained.html",
+    ignore_pattern = "^data:",
+    ignore_tag = c("a", "script"),
+    only_with_issues = FALSE, show_summary = FALSE)
+)
+
 
 
 context("test for ignore_pattern")

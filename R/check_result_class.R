@@ -18,6 +18,7 @@ new_check_result <- function(url, status_code, message, type, checker_options,
 }
 
 url_check_result <- function(.x, type, checker_options, ...) {
+
   if (exists("status_code", .x)) {
     new_check_result(
       url = .x$original_url,

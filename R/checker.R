@@ -10,7 +10,7 @@
 ##' while \code{resource} works better for larger websites that use templates
 ##' are more likely to have mispecified resources across many pages.
 ##'
-##' `checker` attempts to respect the rules specified by the robots.txt files
+##' `checker` attempts to respect the rules specified by the `robots.txt` files
 ##' provided by the external servers. Thus some URLs might not be checked.
 ##'
 ##' @param dir The directory to look for documents
@@ -29,12 +29,15 @@
 ##'   local links will be checked.
 ##' @param only_with_issues Should the results include only the broken links
 ##'   (default) or also the valid links?
-##' @param raise If set to `warning` or `error`, the function will raise a
-##'   warning or an error if broken links are found.
 ##' @param by How should the results of the checks be aggregated?
-##' @param show_summary Should a summary of the results be printed?
+##' @param show_summary Should a list of all problematic links be displayed?
 ##' @param checker_options An optional list that specifies which situations
 ##'   checker should consider invalid. See \code{\link{checker_options}}.
+##' @param stop_on_error When errors are thrown, should the call be interrupted?
+##'   If `FALSE`, the error is displayed as a message on the terminal and the
+##'   resuulting object is returned. If `TRUE`, an error is thrown and the
+##'   function call is stopped.
+## @param quiet Should the final summary be displayed?
 ##' @param ... additional parameters to be passed to `grep` to match the file
 ##'   names to check.
 ##' @details
@@ -61,12 +64,12 @@ check_links <- function(dir = ".", recurse = TRUE,
                         ignore_tag = NULL,
                         check_external = TRUE,
                         only_with_issues = TRUE,
-                        raise = c("ok", "warning", "error"),
                         by = c("page", "resource"),
                         show_summary = TRUE,
-                        checker_options = NULL, ...) {
+                        checker_options = NULL,
+                        stop_on_error = FALSE,
+                        ...) {
 
-  raise <- match.arg(raise)
   by <- match.arg(by)
 
   ## `dir` must be local directory
@@ -154,7 +157,7 @@ check_links <- function(dir = ".", recurse = TRUE,
     summary_check_links(out, by)
   }
 
-  handle_raise(out, raise)
+  handle_raise(out, stop_on_error)
 
   invisible(out)
 
@@ -168,7 +171,7 @@ empty_check_links <- function() {
     scheme = character(0),
     link_text = character(0),
     full_path = character(0),
-    error_level = integer(0),
+    error_level = character(0),
     message = character(0),
     alt_text = character(0)
   )
