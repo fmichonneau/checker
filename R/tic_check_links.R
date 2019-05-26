@@ -50,7 +50,7 @@ check_jekyll_links <- function(site_root = ".",
     if (verbose && !identical(length(nchar(lines)), 0L))
       message(cat(lines, sep = "\n"))
     if (any(grepl("server running", lines, ignore.case = TRUE))) {
-      if (verbose) message("Jekyll is running just fine.")
+      if (verbose) message("Jekyll is running.")
       break
     }
     if (any(grepl("error", lines, ignore.case = TRUE))) {
