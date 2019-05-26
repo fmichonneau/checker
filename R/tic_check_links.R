@@ -21,7 +21,7 @@ check_jekyll_links <- function(site_root = ".",
   deadline <- Sys.time() + timeout
 
   bundle_install <- withr::with_dir(site_root, {
-    processx::run("bundle", "install")
+    processx::run("bundle", c("update", "--local"))
   })
   if (verbose) message(bundle_install$stdout)
 
