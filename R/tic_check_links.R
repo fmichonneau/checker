@@ -17,8 +17,19 @@ check_jekyll_links <- function(site_root = ".",
                                ...
 ) {
 
+  site_root <- normalizePath(site_root, mustWork = TRUE)
+
   timeout <- as.difftime(timeout, units = "secs")
   deadline <- Sys.time() + timeout
+
+  has_gemfile <- fs::file_exists(file.path(site_root, "Gemfile"))
+
+  if (!has_gemfile) {
+    stop(
+      "No Gemfile found in ", sQuote(site_root), ". ",
+      "This function only supports Jekyll sites that use ",
+      "a Gemfile.", call. = FALSE)
+  }
 
   bundle_install <- withr::with_dir(site_root, {
     processx::run("bundle", c("update", "--local"))
