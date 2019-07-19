@@ -1,6 +1,14 @@
 check_fragments_raw <- function(.dt, checker_options, ...) {
 
+  p <- function(...) {
+    progress::progress_bar$new(
+      total = sum(nzchar(.dt$fragment)),
+      format = "  Checking link fragments :current out of :total [:bar] :percent"
+    )
+  }
+
   purrr::pmap(.dt, function(full_path, fragment, data, uri_type, ...) {
+    on.exit(p()$tick())
 
     if (!nzchar(fragment)) return(data)
 
