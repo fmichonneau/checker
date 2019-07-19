@@ -279,6 +279,9 @@ extract_all_links <- function(dir, recurse, regexp, glob, root_dir, ...) {
     ...
   )
 
+  ## needed to avoid trying to parse folders that could match the regexp
+  list_files <- list_files[fs::is_file(list_files)]
+
   if (identical(length(list_files), 0L)) {
     warning("No files match your search.")
   }

@@ -15,6 +15,15 @@ check_fragments_raw <- function(.dt, checker_options, ...) {
       )
     }
 
+    ## file_exists above checks for existence of file. If the path is a
+    ## directory (e.g., in the case of a site that runs on a local server such
+    ## as Jekyll), then we append a final "/" so the server will return the
+    ## correct path instead of trying to parse an empty document (which I think
+    ## is an xml2 bug).
+    if (fs::is_dir(full_path)) {
+      full_path <- paste0(full_path, "/")
+    }
+
     if (identical(uri_type, "local")) {
       doc_xml <- xml2::read_html(full_path, encoding = "utf-8")
     }
