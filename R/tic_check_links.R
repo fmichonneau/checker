@@ -14,6 +14,7 @@ check_jekyll_links <- function(site_root = ".",
                                jekyll_port = "4000",
                                timeout = 1000,
                                verbose = TRUE,
+                               use_bundle = TRUE,
                                ...
 ) {
 
@@ -24,24 +25,33 @@ check_jekyll_links <- function(site_root = ".",
 
   has_gemfile <- fs::file_exists(file.path(site_root, "Gemfile"))
 
-  if (!has_gemfile) {
-    stop(
-      "No Gemfile found in ", sQuote(site_root), ". ",
-      "This function only supports Jekyll sites that use ",
-      "a Gemfile.", call. = FALSE)
+  if (!has_gemfile && use_bundle) {
+    stop("No Gemfile found in ", sQuote(site_root), ". ", call. = FALSE)
   }
 
-  bundle_install <- withr::with_dir(site_root, {
-    processx::run("bundle", c("update", "--local"))
-  })
-  if (verbose) message(bundle_install$stdout)
+  if (use_bundle) {
+    bundle_install <- withr::with_dir(site_root, {
+      processx::run("bundle", c("update", "--local"))
+    })
+    if (verbose) message(bundle_install$stdout)
+  }
 
-  jkyl <- withr::with_dir(site_root, {
-    processx::process$new(
-      "bundle",
-      c("exec", "jekyll", "serve", "--port", jekyll_port),
-      stdout = "|", stderr = "|")
-  })
+  if (use_bundle) {
+    jkyl <- withr::with_dir(site_root, {
+      processx::process$new(
+        "bundle",
+        c("exec", "jekyll", "serve", "--port", jekyll_port),
+        stdout = "|", stderr = "|")
+    })
+  } else {
+    jkyl <- withr::with_dir(site_root, {
+      processx::process$new(
+        "jekyll",
+        c("serve", "--port", jekyll_port),
+        stdout = "|", stderr = "|"
+      )
+    })
+  }
 
   while (jkyl$is_alive() && (now <- Sys.time()) < deadline) {
     poll_time <- as.double(deadline - now, units = "secs") * 1000
