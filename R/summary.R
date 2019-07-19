@@ -117,6 +117,11 @@ summary_check_links <- function(.dt, by) {
 ##' @importFrom dplyr filter
 internal_summary_check_links <- function(.dt, type, by) {
 
+  ## type="success" and type="ok" have silent output
+  if (identical(type, "ok") || identical(type, "success")) {
+    return(invisible(.dt))
+  }
+
   out <- switch(by,
     page = split(.dt, .dt$file),
     resource = split(.dt,
