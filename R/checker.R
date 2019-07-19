@@ -37,7 +37,7 @@
 ##'   If `FALSE`, the error is displayed as a message on the terminal and the
 ##'   resuulting object is returned. If `TRUE`, an error is thrown and the
 ##'   function call is stopped.
-## @param quiet Should the final summary be displayed?
+##' @param quiet Should the progress of the function be displayed?
 ##' @param ... additional parameters to be passed to `grep` to match the file
 ##'   names to check.
 ##' @details
@@ -68,6 +68,7 @@ check_links <- function(dir = ".", recurse = TRUE,
                         show_summary = TRUE,
                         checker_options = NULL,
                         stop_on_error = FALSE,
+                        quiet = FALSE,
                         ...) {
 
   by <- match.arg(by)
@@ -122,7 +123,7 @@ check_links <- function(dir = ".", recurse = TRUE,
         TRUE ~ "unknown_protocol"
       )) %>%
     dplyr::mutate(
-      res = purrr::invoke_map(.data$fn, .data$data, checker_options)
+      res = purrr::invoke_map(.data$fn, .data$data, checker_options, quiet)
     ) %>%
     tidyr::unnest()
 
@@ -131,7 +132,7 @@ check_links <- function(dir = ".", recurse = TRUE,
   out <- dplyr::left_join(links, res, by = c("full_path", "uri_type"))
 
   out <- out %>%
-    check_fragments(checker_options) %>%
+    check_fragments(checker_options, quiet) %>%
     dplyr::select(
       .data$file,
       .data$tag_type,

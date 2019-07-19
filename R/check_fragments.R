@@ -83,11 +83,19 @@ check_fragments_raw <- function(.dt, checker_options, ...) {
 
 }
 
-check_fragments <- function(.d, checker_options, ...) {
+check_fragments <- function(.d, checker_options, quiet, ...) {
+  if (!quiet) {
+    message("Checking for URL fragments ... ", appendLF = FALSE)
+  }
+
   .d <- .d %>%
     tidyr::nest(.data$error_level, .data$message)
 
   .d_res <- check_fragments_raw(.d, checker_options)
+
+  if (!quiet) {
+    message("DONE.")
+  }
 
   .d %>%
     dplyr::mutate(

@@ -1,7 +1,7 @@
 ##' @importFrom xml2 read_html xml_find_all xml_text url_parse
 ##' @importFrom tibble tibble
 ##' @importFrom dplyr  bind_cols mutate
-extract_links_html  <- function(doc, root_dir) {
+extract_links_html  <- function(doc, root_dir, quiet, ...) {
 
   doc <- normalizePath(doc)
 
