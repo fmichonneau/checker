@@ -44,13 +44,24 @@ check_fragments_raw <- function(.dt, checker_options, ...) {
       }
     }
 
-
     test_string <- sprintf(".//*[@name=\"%s\"] | .//*[@id=\"%s\"]",
       fragment, fragment)
 
-    res_anchor  <- doc_xml %>%
-      xml2::xml_find_all(test_string) %>%
-      length()
+    res_anchor  <- try({
+      doc_xml %>%
+        xml2::xml_find_all(test_string) %>%
+        length()
+    }, silent = TRUE)
+
+    if (inherits(res_anchor, "try-error")) {
+      return(
+        tibble::tibble(
+          error_level = checker_options(checker_options)[["html_parsing_failure"]],
+          message = sprintf("Invalid HTML file '%s': %s",
+            full_path, substr(doc_xml, 1, 20))
+        )
+      )
+    }
 
     if (res_anchor > 0L) {
       res <- list(
