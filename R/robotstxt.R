@@ -2,6 +2,10 @@
 ##' @importFrom robotstxt robotstxt
 get_robotstxt <- function(input) {
 
+  if (identical(nrow(input), 0L)) {
+    return(input)
+  }
+
   rbt <- input %>%
     dplyr::filter(.data$uri_type == "external") %>%
     dplyr::distinct(.data$scheme, .data$server, .data$path) %>%

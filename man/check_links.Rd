@@ -4,11 +4,23 @@
 \alias{check_links}
 \title{Check links in your documents}
 \usage{
-check_links(dir = ".", recurse = TRUE, regexp = "\\\\.html?$",
-  glob = NULL, root_dir = dir, ignore_pattern = NULL,
-  ignore_tag = NULL, check_external = TRUE, only_with_issues = TRUE,
-  by = c("page", "resource"), show_summary = TRUE,
-  checker_options = NULL, stop_on_error = FALSE, ...)
+check_links(
+  dir = ".",
+  recurse = TRUE,
+  regexp = "\\\\.html?$",
+  glob = NULL,
+  root_dir = dir,
+  ignore_pattern = NULL,
+  ignore_tag = NULL,
+  check_external = TRUE,
+  only_with_issues = TRUE,
+  by = c("page", "resource"),
+  show_summary = TRUE,
+  checker_options = NULL,
+  stop_on_error = FALSE,
+  quiet = FALSE,
+  ...
+)
 }
 \arguments{
 \item{dir}{The directory to look for documents}
@@ -47,6 +59,8 @@ checker should consider invalid. See \code{\link{checker_options}}.}
 If `FALSE`, the error is displayed as a message on the terminal and the
 resuulting object is returned. If `TRUE`, an error is thrown and the
 function call is stopped.}
+
+\item{quiet}{Should the progress of the function be displayed?}
 
 \item{...}{additional parameters to be passed to `grep` to match the file
 names to check.}

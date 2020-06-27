@@ -4,6 +4,8 @@
 ##'
 ##' @param site_root path for the site
 ##' @param jekyll_port which port to use
+##' @param ruby_cmd ruby environment command that preceeds the call (e.g., `rvm
+##'   2.5.8 do`)
 ##' @param timeout how long to wait for jekyll to sucessfully build the site (in
 ##'   seconds)
 ##' @param verbose should information about progress of the jekyll build be
@@ -12,6 +14,7 @@
 ##' @export
 check_jekyll_links <- function(site_root = ".",
                                jekyll_port = "4000",
+                               ruby_cmd = NULL,
                                timeout = 1000,
                                verbose = TRUE,
                                use_bundle = TRUE,
@@ -36,14 +39,27 @@ check_jekyll_links <- function(site_root = ".",
     if (verbose) message(bundle_install$stdout)
   }
 
+  if (!is.null(ruby_cmd)) {
+    ruby_cmd <- unlist(strsplit(ruby_cmd, " "))
+    ry_cmd <- ruby_cmd[1]
+    ry_args <- ruby_cmd[-1]
+  }
+
   if (use_bundle) {
+    cmd <- "bundle"
+    args <- c("exec", "jekyll", "serve", "--port", jekyll_port)
+    if (!is.null(ruby_cmd)) {
+      cmd <- ry_cmd
+      args <- c(ry_args, "bundle", default_args)
+    }
     jkyl <- withr::with_dir(site_root, {
       processx::process$new(
-        "bundle",
-        c("exec", "jekyll", "serve", "--port", jekyll_port),
+        cmd,
+        args,
         stdout = "|", stderr = "|")
     })
   } else {
+    ## TODO: implement ruby command logic here as well.
     jkyl <- withr::with_dir(site_root, {
       processx::process$new(
         "jekyll",

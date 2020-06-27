@@ -6,13 +6,23 @@
 
 Supports only Jekyll-based sites for now}
 \usage{
-check_jekyll_links(site_root = ".", jekyll_port = "4000",
-  timeout = 1000, verbose = TRUE, ...)
+check_jekyll_links(
+  site_root = ".",
+  jekyll_port = "4000",
+  ruby_cmd = NULL,
+  timeout = 1000,
+  verbose = TRUE,
+  use_bundle = TRUE,
+  ...
+)
 }
 \arguments{
 \item{site_root}{path for the site}
 
 \item{jekyll_port}{which port to use}
+
+\item{ruby_cmd}{ruby environment command that preceeds the call (e.g., `rvm
+2.5.8 do`)}
 
 \item{timeout}{how long to wait for jekyll to sucessfully build the site (in
 seconds)}
