@@ -32,13 +32,6 @@ check_jekyll_links <- function(site_root = ".",
     stop("No Gemfile found in ", sQuote(site_root), ". ", call. = FALSE)
   }
 
-  if (use_bundle) {
-    bundle_install <- withr::with_dir(site_root, {
-      processx::run("bundle", c("update", "--local"))
-    })
-    if (verbose) message(bundle_install$stdout)
-  }
-
   if (!is.null(ruby_cmd)) {
     ruby_cmd <- unlist(strsplit(ruby_cmd, " "))
     ry_cmd <- ruby_cmd[1]
@@ -47,10 +40,24 @@ check_jekyll_links <- function(site_root = ".",
 
   if (use_bundle) {
     cmd <- "bundle"
+    args <- c("update", "--local")
+    if (!is.null(ruby_cmd)) {
+      cmd <- ry_cmd
+      args <- c(ry_args, "bundle", args)
+    }
+    bundle_install <- withr::with_dir(site_root, {
+      processx::run(cmd, args)
+    })
+    if (verbose) message(bundle_install$stdout)
+  }
+
+
+  if (use_bundle) {
+    cmd <- "bundle"
     args <- c("exec", "jekyll", "serve", "--port", jekyll_port)
     if (!is.null(ruby_cmd)) {
       cmd <- ry_cmd
-      args <- c(ry_args, "bundle", default_args)
+      args <- c(ry_args, "bundle", args)
     }
     jkyl <- withr::with_dir(site_root, {
       processx::process$new(
