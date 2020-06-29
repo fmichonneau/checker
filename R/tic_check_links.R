@@ -35,8 +35,19 @@ check_jekyll_links <- function(site_root = ".",
   if (use_bundle) {
     default_cmd <- "bundle"
 
+    ## bundle config
+    config_args <- c(
+      "config", "set", "path",
+      file.path(tempdir(), ".vendor", "bundle")
+    )
+    ruby_config_env <- parse_ruby_cmd(ruby_cmd, default_cmd, config_args)
+    bundle_config <- withr::with_dir(site_root, {
+      processx::run(ruby_config_env$cmd, ruby_config_env$args)
+    })
+    if (verbose) message(bundle_config$stdout)
+
     ## bundle install
-    install_args <- c("install", "--local")
+    install_args <- c("install")
     ruby_install_env <- parse_ruby_cmd(ruby_cmd, default_cmd, install_args)
     bundle_install <- withr::with_dir(site_root, {
       processx::run(ruby_install_env$cmd, ruby_install_env$args)
@@ -44,7 +55,7 @@ check_jekyll_links <- function(site_root = ".",
     if (verbose) message(bundle_install$stdout)
 
     ## bundle update
-    update_args <- c("update", "--local")
+    update_args <- c("update")
     ruby_update_env <- parse_ruby_cmd(ruby_cmd, default_cmd, update_args)
     bundle_update <- withr::with_dir(site_root, {
       processx::run(ruby_update_env$cmd, ruby_update_env$args)
