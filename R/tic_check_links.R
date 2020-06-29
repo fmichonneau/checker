@@ -115,8 +115,8 @@ parse_ruby_cmd <- function(ruby_cmd = NULL, cmd, args) {
     ry_cmd <- ruby_cmd[1]
     ry_args <- ruby_cmd[-1]
 
-    cmd <- ry_cmd
     args <- c(ry_args, cmd, args)
+    cmd <- ry_cmd
   }
   message(
     "Command: ", paste(cmd, collapse = " "), "\n",
