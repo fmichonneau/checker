@@ -32,37 +32,33 @@ check_jekyll_links <- function(site_root = ".",
     stop("No Gemfile found in ", sQuote(site_root), ". ", call. = FALSE)
   }
 
-  if (!is.null(ruby_cmd)) {
-    ruby_cmd <- unlist(strsplit(ruby_cmd, " "))
-    ry_cmd <- ruby_cmd[1]
-    ry_args <- ruby_cmd[-1]
-  }
-
   if (use_bundle) {
-    cmd <- "bundle"
-    args <- c("update", "--local")
-    if (!is.null(ruby_cmd)) {
-      cmd <- ry_cmd
-      args <- c(ry_args, "bundle", args)
-    }
+    default_cmd <- "bundle"
+
+    ## bundle install
+    install_args <- c("install", "--local")
+    ruby_install_env <- parse_ruby_cmd(ruby_cmd, default_cmd, install_args)
     bundle_install <- withr::with_dir(site_root, {
-      processx::run(cmd, args)
+      processx::run(ruby_install_env$cmd, ruby_install_env$args)
     })
     if (verbose) message(bundle_install$stdout)
-  }
 
+    ## bundle update
+    update_args <- c("update", "--local")
+    ruby_update_env <- parse_ruby_cmd(ruby_cmd, default_cmd, update_args)
+    bundle_update <- withr::with_dir(site_root, {
+      processx::run(ruby_update_env$cmd, ruby_update_env$args)
+    })
+    if (verbose) message(bundle_update$stdout)
 
-  if (use_bundle) {
-    cmd <- "bundle"
-    args <- c("exec", "jekyll", "serve", "--port", jekyll_port)
-    if (!is.null(ruby_cmd)) {
-      cmd <- ry_cmd
-      args <- c(ry_args, "bundle", args)
-    }
+    ## bundle exec jekyll serve
+    serve_args <- c("exec", "jekyll", "serve", "--port", jekyll_port)
+    ruby_serve_env <- parse_ruby_cmd(ruby_cmd, default_cmd, serve_args)
+
     jkyl <- withr::with_dir(site_root, {
       processx::process$new(
-        cmd,
-        args,
+        ruby_serve_env$cmd,
+        ruby_serve_env$args,
         stdout = "|", stderr = "|")
     })
   } else {
@@ -99,4 +95,20 @@ check_jekyll_links <- function(site_root = ".",
     ...
   )
   invisible(res_jekyll)
+}
+
+
+parse_ruby_cmd <- function(ruby_cmd = NULL, cmd, args) {
+  if (!is.null(ruby_cmd)) {
+    ruby_cmd <- unlist(strsplit(ruby_cmd, " "))
+    ry_cmd <- ruby_cmd[1]
+    ry_args <- ruby_cmd[-1]
+
+    cmd <- ry_cmd
+    args <- c(ry_args, cmd, args)
+  }
+  list(
+    cmd = cmd,
+    args = args
+  )
 }
